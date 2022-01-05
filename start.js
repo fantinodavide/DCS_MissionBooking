@@ -18,17 +18,17 @@ zip.on('ready', () => {
     function getMissionFlightsFromString(missionFile) {
         let flightsReturn = {};
         for (let o of missionFile.body[0].init[0].fields) {
-            let key = o.key.raw.replaceAll("\"", "");
+            let key = o.key.raw.replace(/\"/g,'');
             if (key == "coalition") {
                 for (let o2 of o.value.fields) {
-                    let side = o2.key.raw.replaceAll("\"", "");
+                    let side = o2.key.raw.replace(/\"/g,'');
                     if (!flightsReturn[side]) flightsReturn[side] = {};
     
                     for (let o3 of o2.value.fields) {
-                        if (o3.key.raw.replaceAll("\"", "") == "country") {
+                        if (o3.key.raw.replace(/\"/g,'') == "country") {
                             for (let c of o3.value.fields) {
                                 for (let o4 of c.value.fields) {
-                                    if (o4.key.raw.replaceAll("\"", "") == "plane") {
+                                    if (o4.key.raw.replace(/\"/g,'') == "plane") {
                                         for (let fGroups of o4.value.fields[0].value.fields) {
                                             //console.log(fGroups);
                                             //flights[side].push();
@@ -36,8 +36,8 @@ zip.on('ready', () => {
                                             let fName = "";
                                             for (let i = 0; i < 2; i++) {
                                                 for (let o5 of fGroups.value.fields) {
-                                                    let o5Key = o5.key.raw.replaceAll("\"", "");
-                                                    let valRaw = o5.value.raw ? o5.value.raw.replaceAll("\"", "") : "";
+                                                    let o5Key = o5.key.raw.replace(/\"/g,'');
+                                                    let valRaw = o5.value.raw ? o5.value.raw.replace(/\"/g,'') : "";
                                                     if (o5Key == "name") {
                                                         if (!flightsReturn[side][valRaw]) flightsReturn[side][valRaw] = {};
                                                         fName = valRaw
@@ -50,10 +50,10 @@ zip.on('ready', () => {
                                                             for (let aircraft of o5.value.fields) {
                                                                 flightsReturn[side][fName]["units"][aircraft.key.value] = {}
                                                                 for (let aInfo of aircraft.value.fields) {
-                                                                    let aSubInfoKey = aInfo.key.raw.replaceAll("\"", "");
+                                                                    let aSubInfoKey = aInfo.key.raw.replace(/\"/g,'');
                                                                     let aSubInfoValue;
                                                                     try {
-                                                                        aSubInfoValue = aInfo.value.raw.replaceAll("\"", "");
+                                                                        aSubInfoValue = aInfo.value.raw.replace(/\"/g,'');
                                                                     } catch (error) { }
                                                                     if (aSubInfoKey == "type") flightsReturn[side][fName].aircraftType = aSubInfoValue;
     
