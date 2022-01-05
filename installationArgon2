@@ -1,0 +1,2 @@
+npm install -g node-gyp
+CXX=g++-6 npm install argon2
