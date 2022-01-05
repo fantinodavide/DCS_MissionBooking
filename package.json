@@ -1,8 +1,9 @@
 {
   "dependencies": {
     "express": "^4.17.2",
+    "fs": "^0.0.1-security",
     "luaparse": "^0.3.1",
-    "node-gyp": "^8.4.1",
+    "node-gyp-build": "^4.3.0",
     "node-stream-zip": "^1.15.0"
   }
 }
