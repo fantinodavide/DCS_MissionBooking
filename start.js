@@ -4,7 +4,7 @@ const LUA = require('luaparse');
 var express = require('express');
 var app = express();
 
-var mizFile = "missions/Iraq_Insurgent_Strike_Multiplayer.miz";
+var mizFile = "missions/example.miz";
 const zip = new StreamZip({
     file: mizFile,
     storeEntries: true
