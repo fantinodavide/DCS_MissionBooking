@@ -1,0 +1,17 @@
+{
+    "http_server": {
+        "bind_ip": "127.0.0.1",
+        "port": 80
+    },
+    "database": {
+        "host": "simitaliagames.com",
+        "port": 3308,
+        "user": "presence",
+        "password": "h5Y5*w4h",
+        "database": "forums"
+    },
+    "missions_directories": [
+        "missions",
+        "C:/Users/Dave/Saved Games/DCS.openbeta/Missions"
+    ]
+}
