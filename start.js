@@ -8,6 +8,9 @@ const path = require('path')
 
 const enableServer = false;
 
+
+initConfigFile();
+
 var mizFile = "missions/example.miz";
 const zip = new StreamZip({
     file: mizFile,
@@ -174,4 +177,5 @@ function initConfigFile(){
             "missions"
         ]
     }
+    if(!fs.existsSync("conf.json")) fs.writeFileSync("conf.json",JSON.stringify(emptyConfFile));
 }
