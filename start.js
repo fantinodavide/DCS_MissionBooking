@@ -156,3 +156,22 @@ function testDB() {
         });
     });
 }
+
+function initConfigFile(){
+    let emptyConfFile = {
+        http_server: {
+            "bind_ip": "127.0.0.1",
+            "port": 80
+        },
+        database: {
+            "host": "hostname.xx",
+            "port": 3306,
+            "user": "username",
+            "password": "password",
+            "database": "my_db"
+        },
+        missions_directories: [
+            "missions"
+        ]
+    }
+}
