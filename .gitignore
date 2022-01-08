@@ -1,4 +1,4 @@
 node_modules/
 **/*.miz
 !missions/example.miz
-conf.json
+./conf.json

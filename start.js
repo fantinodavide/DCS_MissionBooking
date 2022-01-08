@@ -6,62 +6,74 @@ const express = require('express');
 const app = express();
 const path = require('path')
 
-const enableServer = false;
+const enableServer = true;
 
+if (!initConfigFile()) {
+    var mizFile = "missions/example.miz";
+    const zip = new StreamZip({
+        file: mizFile,
+        storeEntries: true
+    });
 
-initConfigFile();
+    const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
+    console.log(config);
 
-var mizFile = "missions/example.miz";
-const zip = new StreamZip({
-    file: mizFile,
-    storeEntries: true
-});
+    let flights = {};
+    zip.on('ready', () => {
+        let missionLua = zip.entryDataSync('mission').toString('utf8');
+        let missionFileString = LUA.parse(missionLua);
 
-const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
-console.log(config);
+        flights = getMissionFlightsFromString(missionFileString)
 
-let flights = {};
-zip.on('ready', () => {
-    let missionLua = zip.entryDataSync('mission').toString('utf8');
-    let missionFileString = LUA.parse(missionLua);
+        //console.log(flights)
+        //console.log(JSON.stringify(flights))
+        fs.writeFileSync("./output.json", JSON.stringify(flights, null, "\t"));
 
-    flights = getMissionFlightsFromString(missionFileString)
+        if (enableServer) {
+            var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
+                var host = server.address().address
+                var port = server.address().port
 
-    //console.log(flights)
-    //console.log(JSON.stringify(flights))
-    //fs.writeFileSync("./output.json", JSON.stringify(flights));
+                console.log("\nWebserver istening at http://%s:%s", host, port)
+            })
+        }
 
-    if (enableServer) {
-        var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
-            var host = server.address().address
-            var port = server.address().port
+        zip.close()
+    });
 
-            console.log("\nWebserver istening at http://%s:%s", host, port)
-        })
-    }
+    app.use('/', express.static('dashboard'));
 
-    zip.close()
-});
+    app.use('/admin', function (req, res, next) {
+        if (checkAuthLevel(req))
+            express.static('admin')(req, res, next);
+        else res.sendStatus(403)
+    });
+    app.get('/api/admin/getAllMissionFiles', function (req, res, next) {
+        //console.log("GET=> ",req.query)
+        //console.log("POST=> ",req.body)
+        if (checkAuthLevel(req))
+            res.send(JSON.stringify(getAllMissionFiles(config)));
+        else res.sendStatus(403)
+    })
 
-app.use('/', express.static('dashboard'));
-/*app.get('/', function (req, res, next) {
-    res.send(JSON.stringify(flights));
-    //next();
-})*/
-app.get('/api/getMissionDetails', function (req, res, next) {
-    //console.log("GET=> ",req.query)
-    console.log("POST=> ", req.body)
-    res.send(JSON.stringify(flights));
-})
-app.get('/api/getAllMissions', function (req, res, next) {
-    //console.log("GET=> ",req.query)
-    //console.log("POST=> ",req.body)
-    res.send(JSON.stringify(getAllMissions()));
-})
+    app.get('/api/admin/getMissionDetails', function (req, res, next) {
+        //console.log("GET=> ",req.query)
+        console.log("POST=> ", req.body)
+        res.send(JSON.stringify(flights));
+    })
+    app.get('/api/getAllMissions', function (req, res, next) {
+        //console.log("GET=> ",req.query)
+        //console.log("POST=> ",req.body)
+        //res.send(JSON.stringify(getAllMissionFiles()));
+    })
 
-getAllMissions();
+}
 
-function getAllMissions() {
+function checkAuthLevel(req) {
+    return true;
+}
+
+function getAllMissionFiles(config) {
     let listMission = []
     for (let d of config.missions_directories) {
         for (let f of fs.readdirSync(d)) {
@@ -160,7 +172,7 @@ function testDB() {
     });
 }
 
-function initConfigFile(){
+function initConfigFile() {
     let emptyConfFile = {
         http_server: {
             "bind_ip": "127.0.0.1",
@@ -177,5 +189,10 @@ function initConfigFile(){
             "missions"
         ]
     }
-    if(!fs.existsSync("conf.json")) fs.writeFileSync("conf.json",JSON.stringify(emptyConfFile));
+    if (!fs.existsSync("conf.json")) {
+        fs.writeFileSync("conf.json", JSON.stringify(emptyConfFile, null, "\t"));
+        console.log("Configuration file created, set your parameters and rerun \"node start\".\nTerminating execution...");
+        return true;
+    }
+    return false;
 }
