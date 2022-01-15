@@ -9,7 +9,7 @@ function send_request(url,method,parameters,callback){
 		timeout : 10000,
 		success: callback,
 		error : function(jqXHR, test_status, str_error){
-			alert("Error: " + str_error);
+			console.error("Error: " + str_error);
 		}
 	});
 }
@@ -17,7 +17,7 @@ function send_request(url,method,parameters,callback){
 function sendRequestNoCallback(url,method,parameters){
 	return $.ajax({
         url: url, 
-        contentType: "application/json; charset=UTF-8",
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 		type: method,
 		dataType: "json",
 		data: parameters,
@@ -27,9 +27,9 @@ function sendRequestNoCallback(url,method,parameters){
 
 function error(jqXHR, testStatus, strError) {
 	if (jqXHR.status == 0)
-		alert("server timeout");
+		console.error("server timeout");
 	else if (jqXHR.status == 200)
-		alert("Formato dei dati non corretto : " + jqXHR.responseText);
+		console.error("Formato dei dati non corretto : " + jqXHR.responseText);
 	else
-		alert("Server Error: " + jqXHR.status + " - " + jqXHR.responseText);
+		console.error("Server Error: " + jqXHR.status + " - " + jqXHR.responseText);
 }

@@ -5,42 +5,36 @@ const mysql = require('mysql');
 const express = require('express');
 const app = express();
 const path = require('path')
+const mongo = require('mongodb');
+const MongoClient = mongo.MongoClient;
+const ObjectID = mongo.ObjectID;
 
 const enableServer = true;
 
 if (!initConfigFile()) {
-    var mizFile = "missions/example.miz";
-    const zip = new StreamZip({
-        file: mizFile,
-        storeEntries: true
-    });
-
     const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
     console.log(config);
 
-    let flights = {};
-    zip.on('ready', () => {
-        let missionLua = zip.entryDataSync('mission').toString('utf8');
-        let missionFileString = LUA.parse(missionLua);
+    if (enableServer) {
+        var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
+            var host = server.address().address
+            var port = server.address().port
 
-        flights = getMissionFlightsFromString(missionFileString)
+            console.log("\nWebserver istening at http://%s:%s", host, port)
+        })
+    }
 
-        //console.log(flights)
-        //console.log(JSON.stringify(flights))
-        fs.writeFileSync("./output.json", JSON.stringify(flights, null, "\t"));
-
-        if (enableServer) {
-            var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
-                var host = server.address().address
-                var port = server.address().port
-
-                console.log("\nWebserver istening at http://%s:%s", host, port)
-            })
-        }
-
-        zip.close()
+    app.use(express.urlencoded({ extended: true }));
+    app.use((req, res, next) => {
+        if (config.other.force_https) {
+            if (req.headers['x-forwarded-proto'] !== 'https')
+                // the statement for performing our redirection
+                return res.redirect('https://' + req.headers.host + req.url);
+            else
+                return next();
+        } else
+            return next();
     });
-
     app.use('/', express.static('dashboard'));
 
     app.use('/admin', function (req, res, next) {
@@ -58,13 +52,76 @@ if (!initConfigFile()) {
 
     app.get('/api/admin/getMissionDetails', function (req, res, next) {
         //console.log("GET=> ",req.query)
-        console.log("POST=> ", req.body)
+        //console.log("POST=> ", req.body)
         res.send(JSON.stringify(flights));
     })
+    app.post('/api/admin/publishMission', function (req, res, next) {
+        if (checkAuthLevel(req)) {
+            console.log(req.body);
+            parseMissionFile(req.body.missionFile, (parsedMiz) => {
+                console.log(parsedMiz);
+
+                let insData = new Object(req.body);
+                insData.parsedMiz = parsedMiz;
+
+                let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
+                let dbName = config.database.mongo._database;
+                let client = MongoClient.connect(url, function (err, db) {
+                    if (err) throw err;
+                    var dbo = db.db(dbName);
+
+                    dbo.collection("missions").insertOne(insData, (err, dbRes) => {
+                        if (err) res.sendStatus(500);
+                        else {
+                            res.send(insData);
+                            console.log("Inserted ", insData);
+                        }
+                    })
+
+
+                });
+            });
+
+            //res.sendStatus(200);
+        }
+        else res.sendStatus(403)
+    })
     app.get('/api/getAllMissions', function (req, res, next) {
-        //console.log("GET=> ",req.query)
-        //console.log("POST=> ",req.body)
-        //res.send(JSON.stringify(getAllMissionFiles()));
+        let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
+        let dbName = config.database.mongo._database;
+        let client = MongoClient.connect(url, function (err, db) {
+            if (err) throw err;
+            var dbo = db.db(dbName);
+
+            dbo.collection("missions").find({},{projection: {missionInputData:1, _id:1}}).sort({"missionInputData.MissionDateandTime":-1}).limit(5).toArray((err, dbRes) => {
+                if (err) res.sendStatus(500);
+                else {
+                    res.send(dbRes);
+                    //console.log("DB Res ", dbRes);
+                }
+            })
+
+
+        });
+    })
+    app.get('/api/getMissionDetails', function (req, res, next) {
+        let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
+        let dbName = config.database.mongo._database;
+        const parm = req.query;
+        let client = MongoClient.connect(url, function (err, db) {
+            if (err) throw err;
+            var dbo = db.db(dbName);
+
+            dbo.collection("missions").findOne(ObjectID(parm.missionId),{projection:{parsedMiz:1}}, (err, dbRes) => {
+                if (err) res.sendStatus(500);
+                else {
+                    res.send(dbRes);
+                    console.log("DB Res ", dbRes);
+                }
+            })
+
+
+        });
     })
 
 }
@@ -77,18 +134,38 @@ function getAllMissionFiles(config) {
     let listMission = []
     for (let d of config.missions_directories) {
         for (let f of fs.readdirSync(d)) {
-            let fstat = fs.statSync(path.join(d, f));
+            let fPath = path.join(d, f);
+            let fstat = fs.statSync(fPath);
             if (f.endsWith(".miz"))
-                listMission.push({ fileName: f, missionName: toUpperFirstChar(path.basename(f, path.extname(f))), lastupdate: fstat.ctime, birthtime: fstat.birthtime })
+                listMission.push({ filePath: fPath, missionName: toUpperFirstChar(path.basename(f, path.extname(f))), lastupdate: fstat.ctime, birthtime: fstat.birthtime })
         }
     }
     listMission = listMission.sort(function (a, b) {
         return b.lastupdate - a.lastupdate;
     });
-    console.log(listMission);
+    //console.log(listMission);
     return listMission;
 }
+function parseMissionFile(mizFile, success) {
+    const zip = new StreamZip({
+        file: mizFile,
+        storeEntries: true
+    });
+    let flights = {};
+    zip.on('ready', () => {
+        let missionLua = zip.entryDataSync('mission').toString('utf8');
+        let missionFileString = LUA.parse(missionLua);
 
+        flights = getMissionFlightsFromString(missionFileString)
+
+        //console.log(flights)
+        //console.log(JSON.stringify(flights))
+        //fs.writeFileSync("./output.json", JSON.stringify(flights, null, "\t"));
+
+        success(flights);
+        zip.close()
+    });
+}
 function getMissionFlightsFromString(missionFile) {
     let flightsReturn = {};
     for (let o of missionFile.body[0].init[0].fields) {
@@ -160,7 +237,7 @@ function toUpperFirstChar(string) {
 }
 
 function testDB() {
-    var con = mysql.createConnection(config.database);
+    var con = mysql.createConnection(config.database.mysql);
 
     con.connect(function (err) {
         if (err) throw err;
@@ -172,22 +249,51 @@ function testDB() {
     });
 }
 
+function testMongoDB(config) {
+    let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
+    let dbName = config.database.mongo._database;
+    let client = MongoClient.connect(url, function (err, db) {
+        if (err) throw err;
+        var dbo = db.db(dbName);
+
+        dbo.collection("missions").find({}).toArray(function (err, result) {
+            if (err) throw err;
+            console.log(result);
+            //let res = await dbo.collection("test").insertOne({})
+            db.close();
+        });
+
+    });
+}
+
 function initConfigFile() {
     let emptyConfFile = {
         http_server: {
-            "bind_ip": "127.0.0.1",
+            "bind_ip": "0.0.0.0",
             "port": 80
         },
         database: {
-            "host": "hostname.xx",
-            "port": 3306,
-            "user": "username",
-            "password": "password",
-            "database": "my_db"
+            mysql: {
+                "host": "hostname.xx",
+                "port": 3306,
+                "user": "username",
+                "password": "password",
+                "database": "my_db"
+            },
+            mongo: {
+                "host": "0.0.0.0",
+                "port": 27017,
+                //"_user": "",
+                //"_password": "",
+                "database": "DCS_MissionBooking"
+            }
         },
         missions_directories: [
             "missions"
-        ]
+        ],
+        other: {
+            force_https: true
+        }
     }
     if (!fs.existsSync("conf.json")) {
         fs.writeFileSync("conf.json", JSON.stringify(emptyConfFile, null, "\t"));

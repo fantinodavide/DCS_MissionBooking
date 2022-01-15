@@ -1,0 +1,40 @@
+:root {
+    --bgColor: #222;
+    --bgColor2: #343434;
+    --bgColor3: #3a3a3a;
+    --txtColor: #fff;
+}
+
+body{
+    background: var(--bgColor);
+}
+*{
+    color: var(--txtColor);
+}
+
+select {
+    //position: relative;
+    background-color: var(--bgColor2);
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px 0 #0003;
+    margin: 10px;
+    //width: 100%;
+}
+
+select:hover {
+    background-color: var(--bgColor3);
+}
+
+.mainContainer{
+    position: relative;
+    margin: auto;
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 0px 30px;
+}
