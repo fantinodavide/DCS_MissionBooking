@@ -1,16 +1,26 @@
 {
 	"http_server": {
-		"bind_ip": "127.0.0.1",
+		"bind_ip": "0.0.0.0",
 		"port": 80
 	},
 	"database": {
-		"host": "hostname.xx",
-		"port": 3306,
-		"user": "username",
-		"password": "password",
-		"database": "my_db"
+		"mysql": {
+			"host": "hostname.xx",
+			"port": 3306,
+			"user": "username",
+			"password": "password",
+			"database": "my_db"
+		},
+		"mongo": {
+			"host": "0.0.0.0",
+			"port": 27017,
+			"database": "DCS_MissionBooking"
+		}
 	},
 	"missions_directories": [
 		"missions"
-	]
+	],
+	"other": {
+		"force_https": false
+	}
 }

@@ -1,0 +1,442 @@
+:root {
+    //--color1: #00ce00;
+    /*--color1: #e00;
+    --txtColor1: #fff;
+    --bgColor1: #333;*/
+    --color1: #f60;
+    --color2: var(--color1);
+    --txtColor1: #fff;
+    --bgColor1: #fff0;
+    --txtColor2: #000;
+    --bgColor2: #fff;
+}
+
+*{
+    padding: 0;
+    margin: 0;
+    font-family: arial;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+}
+*:focus{
+    outline: none;
+}
+/*
+body{
+    position: absolute;
+    padding-top: 50px;
+    background-color: var(--bgColor1);
+    height: calc(100% - 50px);
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+header{
+    position: fixed;
+    top: 0;
+    height: 30px;
+    width: calc(100% - 20px);
+    padding: 10px;
+    background: var(--color1);
+    color: var(--txtColor1);
+    box-shadow: 0 0px 7px 3px #0003;
+    display: flex;
+    align-items: center;
+    //justify-content: center;
+    z-index: 50;
+}
+header .centerContainer{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-right: 40px;
+}
+header h1{
+    font-weight: normal;
+    font-size: 28px;
+}
+header #menuBtn{
+    //position: absolute;
+    position: relative;
+    //left: 10px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+header #menuBtn .hamburger, header #menuBtn .hamburger::after, header #menuBtn .hamburger::before{
+    position: absolute;
+    top: 50%;
+    left: 0px;
+    width: 30px;
+    height: 3px;
+    background: #fff;
+    border-radius: 2px;
+    transform: translateY(-50%);
+    content: "";
+    transition: all 200ms ease-in-out;
+    box-shadow: 0 0 5px 1px #0004;
+}
+header #menuBtn .hamburger.active::after, header #menuBtn .hamburger.active::before{
+    top: 0;
+    left: -15px;
+}
+header #menuBtn .hamburger::after{
+    position: absolute;
+    transform: translateY(0);
+    top: -8px;
+}
+header #menuBtn .hamburger::before{
+    position: absolute;
+    transform: translateY(0);
+    top: 8px;
+}
+header #menuBtn .hamburger.active{
+    left: 15px;
+    width: 0;
+}
+header #menuBtn .hamburger.active::after{
+    //transform: translateY(0) rotate(-315deg);
+    transform: translateY(0) rotate(-135deg);
+}
+header #menuBtn .hamburger.active::before{
+    transform: translateY(0) rotate(135deg);
+}
+
+h2{
+    font-weight: normal;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+*/
+::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+    background: #aaa;
+    border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+.card, .linearResume{
+    position: relative;
+    margin: 25px;
+    //height: calc(400px - 75px);
+    height: 400px;
+    //width: calc(250px - 50px);
+    width: 250px;
+    //padding: 25px;
+    //padding-bottom: 50px;
+    box-shadow: 0 3px 7px 0px #0004;
+    border-radius: 10px;
+    transition: all 100ms ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    background: #fff1;
+    opacity: 0;
+}
+.card:hover{
+    transform: scale(1.03);
+}
+.linearResume:hover{
+    transform: scale(1.02);
+}
+.card .img, .linearResume .img{
+    //position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: #0004;
+    //background-image: url('https://picsum.photos/300/200');
+    //background-image: url('img/image-not-found');
+    background-position: center;
+    background-size: cover;
+    flex-shrink: 0;
+    transition: height 150ms ease-in-out;
+}
+.card .img:hover{
+    height: 150px;
+}
+.card .descContainer, .linearResume .descContainer{
+    height: 100%;
+    width: calc(100% - 30px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    padding: 0 15px;
+    flex-grow: 0;
+}
+.card h3, .linearResume h3{
+    margin: 10px;
+}
+.descContainer h3, .descContainer h3{
+    margin-bottom: 10px;
+}
+.descContainer p{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-bottom: 7px;
+}
+.descContainer .keySpan{
+    font-weight: bold;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+.descContainer .valueSpan{
+    flex-grow: 1;
+    min-width: 130px;
+    padding-left: 10px;
+}
+.descContainer .valueSpan.right{
+    text-align: right;
+}
+.descContainer .valueSpan input[type="number"]{
+    width: 50px;
+}
+
+.linearResume{
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    margin: 0;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px 0px #0003;
+}
+.linearResume .valueSpan{
+    min-width: 0;
+}
+.linearResume .img{
+    width: 150px;
+    height: 150px;
+}
+.linearResume h3{
+}
+
+button{
+    /*display: flex;
+    justify-content: center;
+    align-items: center;*/
+    position: relative;
+    line-height: 15px;
+    padding: 7px 15px;
+    background: var(--color1);
+    color: var(--txtColor1);
+    border-radius: 5px;
+    border: none;
+    box-shadow: 0 1px 3px 1px #0004;
+    font-size: 15px;
+    transition: all 100ms ease-in-out;
+    margin: 10px 10px;
+    border: none;
+    cursor: pointer;
+    //transform: scale(1.05);
+}
+button::after{
+    content: "\2713";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    border-radius: inherit;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 20px;
+    opacity: 0;
+    transition: all 200ms ease-in-out;
+}
+button.check::after{
+    opacity: 1;
+}
+
+.card .btnPrenota{
+    //position: absolute;
+    //bottom: 10px;
+}
+button:hover{
+    transform: scale(1.07);
+}
+button:focus{
+    outline: none;
+}
+#sideMenu{
+    position: fixed;
+    top: 50px;
+    left: -200px;
+    width: 200px;
+    height: calc(100% - 50px);
+    background: #fff0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    //transition-delay: 1s;
+    //pointer-events: fill;
+}
+#sideMenu.active{
+    left: 0;
+    transition-delay: 0s;
+}
+#sideMenu a{
+    position: relative;
+    left: -200px;
+    text-decoration: none;
+    color: var(--txtColor2);
+    padding: 10px 20px;
+    background: var(--bgColor2);
+    border-radius: 10px;
+    box-shadow: 0 3px 7px 0px #0004;
+    margin: 10px 10px;
+    margin-bottom: 0;
+    transition: left 200ms ease-in-out;
+    cursor: pointer;
+}
+#sideMenu.active > a{
+    left: 0px;
+}
+#sideMenu a:hover{
+   transform: scale(1.05);
+}
+.loginContainer{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    //width: 300px;
+    height: auto;
+    padding: 25px 50px;
+    background: #fff;
+    box-shadow: 0 3px 7px 0px #0004;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 10;
+    opacity: 0;
+    transition: all 150ms ease-in-out;
+    color: #000;
+}
+.loginContainer *{
+    color: #000;
+}
+.loginContainer legend{
+    font-size: 20px;
+    width: auto;
+    margin-left: 5px;
+    padding: 0 3px;
+}
+fieldset{
+    height: 55px;
+    border: 2px solid #000;
+    transition: all 150ms ease-in-out;
+}
+.loginContainer fieldset{
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+.loginContainer fieldset input{
+    width: 200px;
+    border: none;
+    padding: 5px;
+    background: #0000;
+    transition: all 150ms ease-in-out;
+}
+.radioContainer{
+    display: flex;
+    background: #f8f8f8;
+    flex-shrink: 0;
+}
+.radioContainer.linear{
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    justify-content: center;
+}
+.radioContainer input[type="radio"]{
+    display: none;
+}
+.radioContainer label{
+    display: block;
+    width: 100px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 150ms ease-in-out;
+    color: var(--txtColor2);
+    cursor: pointer;
+    max-width: 200px;
+    flex-grow: 1;
+    padding: 0 10px;
+}
+.radioContainer label:hover{
+    background: #eee;
+}
+.radioContainer label.sel{
+    background: var(--color2);
+    color: var(--txtColor1);
+}
+.radioContainer button{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.mainContainer{
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+#catContainer{
+    flex-shrink: 0;
+}
+#cardContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    overflow-x: hidden;
+    overflow-y:visible;
+    height: 100%;
+    width: 100%;
+}
+.innerContainerFlex{
+    padding: 25px;
+    padding-top: 20px;
+    padding-bottom: 5px;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-shadow: 0 2px 7px 0px #0004;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+.innerContainerFlex h3{}
+
+.noMaxHeight{
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding: 10px;
+    padding-bottom: 0px;
+    justify-content: flex-start;
+    max-width: 100%;
+}

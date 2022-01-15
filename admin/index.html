@@ -6,12 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/sendrequest.js"></script>
+    <script src="/myLib.js"></script>
     <script src="script.js"></script>
+    <link rel="stylesheet" href="/myLib.css">
+    <link rel="stylesheet" href="/style.css">
     <title>Admin</title>
 </head>
 <body>
-    <select id="missionSelection">
-        <option value="" selected hidden>Seleziona File Missione</option>
-    </select>
+    <div class="mainContainer">
+        <select id="missionSelection">
+            <option value="" selected hidden>Seleziona File Missione</option>
+        </select>
+        <div id="inpMissionData" hidden>
+            <fieldset>
+                <legend>Mission Name</legend>
+                <input type="text" name="missionName" id="inpMissionName">
+            </fieldset>
+    
+            <fieldset>
+                <legend>Mission Date and Time</legend>
+                <input type="datetime-local" name="missionDateTime" id="inpMissionDatetime">
+            </fieldset>
+            <button id="btnPubMission">Publish Mission</button>
+        </div>
+    </div>
 </body>
 </html>
