@@ -8,9 +8,6 @@
 body{
     background: var(--bgColor);
 }
-*{
-    color: var(--txtColor);
-}
 
 select {
     //position: relative;
@@ -37,4 +34,7 @@ select:hover {
     justify-content: center;
     align-items: stretch;
     padding: 0px 30px;
+}
+.mainContainer *{
+    color: var(--txtColor);
 }
