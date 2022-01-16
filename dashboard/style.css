@@ -5,6 +5,15 @@
     --txtColor: #fff;
 }
 
+*{
+    padding: 0;
+    margin: 0;
+    font-family: arial;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+}
+
 body{
     background: var(--bgColor);
 }
@@ -17,7 +26,7 @@ select {
     border: none;
     border-radius: 5px;
     box-shadow: 0 1px 5px 0 #0003;
-    margin: 10px;
+    margin: 10px 0;
     //width: 100%;
 }
 
@@ -28,13 +37,53 @@ select:hover {
 .mainContainer{
     position: relative;
     margin: auto;
-    width: 100%;
+    //width: 100%;
     max-width: 1000px;
     display: flex;
     justify-content: center;
     align-items: stretch;
     padding: 0px 30px;
+    flex-direction: column;
 }
 .mainContainer *{
     color: var(--txtColor);
 }
+
+/*table{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+tr{
+    display: flex;
+    flex-direction: row;
+    align-content: stretch;
+}*/
+table{
+    //margin: 10px;
+}
+table, th, td {
+  //border:1px solid #666;
+  border:none;
+  padding: 5px 10px;
+}
+/*tr,th,td{
+    display: block;
+}*/
+td[rowspan]{
+    margin: 10px;
+}
+tr.rowSpacer{
+    height: 10px;
+}
+
+tr{
+    background-color: var(--bgColor2);
+}
+td{
+    border-radius: 5px;
+
+}
+/*tr:hover{
+    background-color: var(--bgColor2);
+}*/
