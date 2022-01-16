@@ -396,7 +396,7 @@ fieldset{
     margin-top: 5px;
     margin-bottom: 5px;
 }
-.mainContainer{
+/*.mainContainer{
     position: relative;
     height: 100%;
     display: flex;
@@ -436,3 +436,4 @@ fieldset{
     justify-content: flex-start;
     max-width: 100%;
 }
+*/
