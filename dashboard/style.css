@@ -1,6 +1,6 @@
 :root {
     --bgColor: #222;
-    --bgColor2: #343434;
+    --bgColor2: #333;
     --bgColor3: #3a3a3a;
     --txtColor: #fff;
 }
@@ -42,7 +42,7 @@ select:hover {
     display: flex;
     justify-content: center;
     align-items: stretch;
-    padding: 0px 30px;
+    padding: 0px 10px;
     flex-direction: column;
 }
 .mainContainer *{
@@ -59,31 +59,91 @@ tr{
     flex-direction: row;
     align-content: stretch;
 }*/
+td[rowspan]:first-of-type{
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+
+}
 table{
-    //margin: 10px;
+    //border-collapse: collapse;
 }
 table, th, td {
-  //border:1px solid #666;
   border:none;
-  padding: 5px 10px;
 }
-/*tr,th,td{
-    display: block;
-}*/
-td[rowspan]{
-    margin: 10px;
+th, td {
+    border:none;
+    padding: 5px 10px;
+    border: 0px solid #000;
+    background-color: var(--bgColor2);
+    overflow: hidden;
+}
+tr{
+    border: 10px solid var(--bgColor);
+}
+tr:first-of-type{
+    border-radius: 50px;
+    border: none;
+    overflow: hidden;
 }
 tr.rowSpacer{
-    height: 10px;
+    height: 5px;
 }
 
-tr{
-    background-color: var(--bgColor2);
-}
 td{
-    border-radius: 5px;
+    //border-radius: 5px;
+
+}
+th{
+    //border-radius: 10px;
+    margin:10px;
+    padding: 10px;
+    background: var(--bgColor3)
+}
+th:first-of-type{
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+th:last-of-type{
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+.inFlightNumber{
+    position: relative;
+    padding: 3px;
+    background: #888;
+    color: #000;
+    width: 20px;
+    height: 20px;
+    border-radius: 50px;
+    margin: 0px;
+    display: inline-block;
+    text-align: center;
+    line-height: 20px;
+}
+.inFlightNumber.booked{
+    background: #eee;
 
 }
 /*tr:hover{
     background-color: var(--bgColor2);
 }*/
+#tableContainer{
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    margin: 0 10px;
+    flex-direction: column;
+    overflow: auto;
+}
+.playerContainer{
+    //border-radius: 50px;
+    //border: 1px solid green;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+.playerContainer.blue{
+    border-left: solid 5px #45c;
+}
+.playerContainer.red{
+    border-left: solid 5px #c55;
+}

@@ -11,46 +11,54 @@ $(document).ready(() => {
             send_request("/api/getMissionDetails", "GET", { missionId: missionId }, (data) => {
                 const jsonData = JSON.parse(data);
                 console.log(jsonData.parsedMiz.blue);
-
-                createTable(jsonData.parsedMiz.blue)
+                $("#tableContainer").find("table").remove();
+                createTable(jsonData.parsedMiz, "blue/red")
+                //createTable(jsonData.parsedMiz.red, "red")
 
             });
         })
     })
 })
 
-function createTable(faction) {
+function createTable(parsedMiz, filter) {
     let table = $("<table><tr><th>Group</th><th>Task</th><th>Aircraft</th><th>Slots</th></tr></table>");
     //$(".mainContainer")
-    Object.entries(faction).forEach(entry => {
+    Object.entries(parsedMiz).forEach(entry => {
         const [k, v] = entry;
-        const showAI = false;
-        if(v.units[1].skill == "Client"||showAI){
-            const unitsCount = count(v.units);
-    
-            let row = $("<tr><td rowspan=\"" + unitsCount + "\">" + k + "</td></tr>");
-            table.append(row);
+        let color = k;
+        if (filter.includes(k)) {
             Object.entries(v).forEach(entry => {
                 const [k, v] = entry;
-                if (!isObject(v)) {
-                    let td = $("<td rowspan=\"" + unitsCount + "\">" + v + "</td>");
-                    row.append(td);
-                }
-            });
-            
-            Object.entries(v.units).forEach(entry => {
-                const [k, v] = entry;
-                let td = $("<td>" + v + "</td>");
-                if (k == 1)
-                row.append("<td>" + k + "</td>");
-                else
-                table.append("<tr><td>" + k + "</td></tr>");
-            });
-            table.append("<tr class='rowSpacer'></tr>");
+                const showAI = false;
+                if (v.units[1].skill == "Client" || showAI) {
+                    table.append("<tr class='rowSpacer'></tr>");
+                    const unitsCount = count(v.units);
 
+                    let row = $("<tr><td rowspan=\"" + unitsCount + "\">" + k + "</td></tr>");
+                    table.append(row);
+                    Object.entries(v).forEach(entry => {
+                        const [k, v] = entry;
+                        if (!isObject(v)) {
+                            let td = $("<td rowspan=\"" + unitsCount + "\">" + v + "</td>");
+                            row.append(td);
+                        }
+                    });
+
+                    Object.entries(v.units).forEach(entry => {
+                        const [k, v] = entry;
+                        let td = $("<td>" + v + "</td>");
+                        let tdString = "<td  class='playerContainer " + color + "'><span class='inFlightNumber'>" + k + "</span></td>";
+                        if (k == 1)
+                            row.append(tdString);
+                        else
+                            table.append("<tr>" + tdString + "</tr>");
+                    });
+
+                }
+            })
         }
     })
-    $(".mainContainer").append(table);
+    $("#tableContainer").append(table);
 }
 function recursiveCellCreator(k, v) {
     if (!isObject(v)) {
