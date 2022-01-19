@@ -1,4 +1,11 @@
 $(document).ready(() => {
+    send_request("/api/getAppName", "GET", null, (data) => {
+        if(data!=""){
+            $("#appName").html(data)
+            $("title").html(data)
+        }
+    })
+
     send_request("/api/getAllMissions", "GET", null, (data) => {
         const jsonData = JSON.parse(data);
         for (let m of jsonData) {
@@ -20,38 +27,47 @@ $(document).ready(() => {
     })
 })
 
-function createTable(parsedMiz, filter) {
-    let table = $("<table><tr><th>Group</th><th>Task</th><th>Aircraft</th><th>Slots</th></tr></table>");
+function createTable(parsedMiz, sideFilter) {
+    let table = $("<table><tr><th>Flight</th><th>Task</th><th>Slots</th></tr></table>");
     //$(".mainContainer")
     Object.entries(parsedMiz).forEach(entry => {
         const [k, v] = entry;
-        let color = k;
-        if (filter.includes(k)) {
+        let sideColor = k;
+        if (sideFilter.includes(k)) {
             Object.entries(v).forEach(entry => {
                 const [k, v] = entry;
                 const showAI = false;
                 if (v.units[1].skill == "Client" || showAI) {
                     table.append("<tr class='rowSpacer'></tr>");
                     const unitsCount = count(v.units);
-
-                    let row = $("<tr><td rowspan=\"" + unitsCount + "\">" + k + "</td></tr>");
+                    let flightName = k;
+                    let row = $("<tr><td rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>"+v.aircraftType+"</span><span class='groupName'>" + k + "</span></div></td></tr>");
                     table.append(row);
                     Object.entries(v).forEach(entry => {
                         const [k, v] = entry;
-                        if (!isObject(v)) {
-                            let td = $("<td rowspan=\"" + unitsCount + "\">" + v + "</td>");
-                            row.append(td);
+                        if(["task"].includes(k)){
+                            if (!isObject(v)) {
+                                let td = $("<td class='colId "+k+" "+v+"' rowspan=\"" + unitsCount + "\">" + v + "</td>");
+                                row.append(td);
+                            }
                         }
                     });
 
                     Object.entries(v.units).forEach(entry => {
                         const [k, v] = entry;
                         let td = $("<td>" + v + "</td>");
-                        let tdString = "<td  class='playerContainer " + color + "'><span class='inFlightNumber'>" + k + "</span></td>";
+                        let tdElm = $("<td class='playerContainer " + sideColor + "'><span class='inFlightNumber'>" + k + "</span></td>");
+                        tdElm.on("click",()=>{
+                            console.log({sideColor: sideColor, flight: flightName, spec: v});
+                            tdElm.toggleClass("booked");
+                        })
                         if (k == 1)
-                            row.append(tdString);
-                        else
-                            table.append("<tr>" + tdString + "</tr>");
+                            row.append(tdElm);
+                        else{
+                            let tmpTr = $("<tr></tr>")
+                            tmpTr.append(tdElm);
+                            table.append(tmpTr);
+                        }
                     });
 
                 }

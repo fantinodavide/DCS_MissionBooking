@@ -20,7 +20,10 @@
 	"missions_directories": [
 		"missions"
 	],
+	"app_personalization": {
+		"name": "SIG DCS Booking"
+	},
 	"other": {
-		"force_https": false
+		"force_https": true
 	}
 }

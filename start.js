@@ -124,6 +124,10 @@ if (!initConfigFile()) {
         });
     })
 
+    app.get('/api/getAppName', function (req, res, next) {
+        res.send(config.app_personalization.name);
+    })
+
 }
 
 function checkAuthLevel(req) {
@@ -291,6 +295,9 @@ function initConfigFile() {
         missions_directories: [
             "missions"
         ],
+        app_personalization:{
+            name: "DCS Mission Booking"  
+        },
         other: {
             force_https: true
         }
