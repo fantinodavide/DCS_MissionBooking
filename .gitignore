@@ -1,5 +1,7 @@
 node_modules/
 **/*.miz
-!missions/example.miz
 ./conf.json
 **/*.bak
+
+!missions/example.miz
+!node_modules/argon2
