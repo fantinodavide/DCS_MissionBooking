@@ -1,0 +1,29 @@
+{
+	"http_server": {
+		"bind_ip": "0.0.0.0",
+		"port": 80
+	},
+	"database": {
+		"mysql": {
+			"host": "hostname.xx",
+			"port": 3306,
+			"user": "username",
+			"password": "password",
+			"database": "my_db"
+		},
+		"mongo": {
+			"host": "0.0.0.0",
+			"port": 27017,
+			"database": "DCS_MissionBooking"
+		}
+	},
+	"missions_directories": [
+		"missions"
+	],
+	"app_personalization": {
+		"name": "SIG DCS Booking"
+	},
+	"other": {
+		"force_https": true
+	}
+}
