@@ -8,126 +8,132 @@ const path = require('path')
 const mongo = require('mongodb');
 const MongoClient = mongo.MongoClient;
 const ObjectID = mongo.ObjectID;
+const readline = require('readline');
 
 const enableServer = true;
 
-if (!initConfigFile()) {
-    const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
-    console.log(config);
+start();
 
-    if (enableServer) {
-        var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
-            var host = server.address().address
-            var port = server.address().port
-
-            console.log("\nWebserver istening at http://%s:%s", host, port)
-        })
-    }
-
-    app.use(express.urlencoded({ extended: true }));
-    app.use((req, res, next) => {
-        if (config.other.force_https) {
-            if (req.headers['x-forwarded-proto'] !== 'https')
-                // the statement for performing our redirection
-                return res.redirect('https://' + req.headers.host + req.url);
-            else
-                return next();
-        } else
-            return next();
-    });
-    app.use('/', express.static('dashboard'));
-
-    app.use('/admin', function (req, res, next) {
-        if (checkAuthLevel(req))
-            express.static('admin')(req, res, next);
-        else res.sendStatus(403)
-    });
-    app.get('/api/admin/getAllMissionFiles', function (req, res, next) {
-        //console.log("GET=> ",req.query)
-        //console.log("POST=> ",req.body)
-        if (checkAuthLevel(req))
-            res.send(JSON.stringify(getAllMissionFiles(config)));
-        else res.sendStatus(403)
-    })
-
-    app.get('/api/admin/getMissionDetails', function (req, res, next) {
-        //console.log("GET=> ",req.query)
-        //console.log("POST=> ", req.body)
-        res.send(JSON.stringify(flights));
-    })
-    app.post('/api/admin/publishMission', function (req, res, next) {
-        if (checkAuthLevel(req)) {
-            console.log(req.body);
-            parseMissionFile(req.body.missionFile, (parsedMiz) => {
-                console.log(parsedMiz);
-
-                let insData = new Object(req.body);
-                insData.parsedMiz = parsedMiz;
-
-                let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
-                let dbName = config.database.mongo._database;
-                let client = MongoClient.connect(url, function (err, db) {
-                    if (err) throw err;
-                    var dbo = db.db(dbName);
-
-                    dbo.collection("missions").insertOne(insData, (err, dbRes) => {
-                        if (err) res.sendStatus(500);
-                        else {
-                            res.send(insData);
-                            console.log("Inserted ", insData);
-                        }
-                    })
-
-
-                });
-            });
-
-            //res.sendStatus(200);
+function start(){
+    if (!initConfigFile()) {
+        const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
+        console.log(config);
+    
+        if (enableServer) {
+            var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
+                var host = server.address().address
+                var port = server.address().port
+    
+                console.log("\nWebserver istening at http://%s:%s", host, port)
+            })
         }
-        else res.sendStatus(403)
-    })
-    app.get('/api/getAllMissions', function (req, res, next) {
-        let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
-        let dbName = config.database.mongo._database;
-        let client = MongoClient.connect(url, function (err, db) {
-            if (err) throw err;
-            var dbo = db.db(dbName);
-
-            dbo.collection("missions").find({},{projection: {missionInputData:1, _id:1}}).sort({"missionInputData.MissionDateandTime":-1}).limit(5).toArray((err, dbRes) => {
-                if (err) res.sendStatus(500);
-                else {
-                    res.send(dbRes);
-                    //console.log("DB Res ", dbRes);
-                }
-            })
-
-
+    
+        app.use(express.urlencoded({ extended: true }));
+        app.use((req, res, next) => {
+            if (config.other.force_https) {
+                if (req.headers['x-forwarded-proto'] !== 'https')
+                    // the statement for performing our redirection
+                    return res.redirect('https://' + req.headers.host + req.url);
+                else
+                    return next();
+            } else
+                return next();
         });
-    })
-    app.get('/api/getMissionDetails', function (req, res, next) {
-        let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
-        let dbName = config.database.mongo._database;
-        const parm = req.query;
-        let client = MongoClient.connect(url, function (err, db) {
-            if (err) throw err;
-            var dbo = db.db(dbName);
-
-            dbo.collection("missions").findOne(ObjectID(parm.missionId),{projection:{parsedMiz:1}}, (err, dbRes) => {
-                if (err) res.sendStatus(500);
-                else {
-                    res.send(dbRes);
-                    console.log("DB Res ", dbRes);
-                }
-            })
-
-
+        app.use('/', express.static('dashboard'));
+    
+        app.use('/admin', function (req, res, next) {
+            if (checkAuthLevel(req))
+                express.static('admin')(req, res, next);
+            else res.sendStatus(403)
         });
-    })
-
-    app.get('/api/getAppName', function (req, res, next) {
-        res.send(config.app_personalization.name);
-    })
-
+        app.get('/api/admin/getAllMissionFiles', function (req, res, next) {
+            //console.log("GET=> ",req.query)
+            //console.log("POST=> ",req.body)
+            if (checkAuthLevel(req))
+                res.send(JSON.stringify(getAllMissionFiles(config)));
+            else res.sendStatus(403)
+        })
+    
+        app.get('/api/admin/getMissionDetails', function (req, res, next) {
+            //console.log("GET=> ",req.query)
+            //console.log("POST=> ", req.body)
+            res.send(JSON.stringify(flights));
+        })
+        app.post('/api/admin/publishMission', function (req, res, next) {
+            if (checkAuthLevel(req)) {
+                console.log(req.body);
+                parseMissionFile(req.body.missionFile, (parsedMiz) => {
+                    console.log(parsedMiz);
+    
+                    let insData = new Object(req.body);
+                    insData.parsedMiz = parsedMiz;
+    
+                    let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
+                    let dbName = config.database.mongo._database;
+                    let client = MongoClient.connect(url, function (err, db) {
+                        if (err) throw err;
+                        var dbo = db.db(dbName);
+    
+                        dbo.collection("missions").insertOne(insData, (err, dbRes) => {
+                            if (err) res.sendStatus(500);
+                            else {
+                                res.send(insData);
+                                console.log("Inserted ", insData);
+                            }
+                        })
+    
+    
+                    });
+                });
+    
+                //res.sendStatus(200);
+            }
+            else res.sendStatus(403)
+        })
+        app.get('/api/getAllMissions', function (req, res, next) {
+            let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
+            let dbName = config.database.mongo._database;
+            let client = MongoClient.connect(url, function (err, db) {
+                if (err) throw err;
+                var dbo = db.db(dbName);
+    
+                dbo.collection("missions").find({}, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(5).toArray((err, dbRes) => {
+                    if (err) res.sendStatus(500);
+                    else {
+                        res.send(dbRes);
+                        //console.log("DB Res ", dbRes);
+                    }
+                })
+    
+    
+            });
+        })
+        app.get('/api/getMissionDetails', function (req, res, next) {
+            let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
+            let dbName = config.database.mongo._database;
+            const parm = req.query;
+            let client = MongoClient.connect(url, function (err, db) {
+                if (err) throw err;
+                var dbo = db.db(dbName);
+    
+                dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { parsedMiz: 1 } }, (err, dbRes) => {
+                    if (err) res.sendStatus(500);
+                    else {
+                        res.send(dbRes);
+                        console.log("DB Res ", dbRes);
+                    }
+                })
+    
+    
+            });
+        })
+    
+        app.get('/api/getAppName', function (req, res, next) {
+            res.send(config.app_personalization.name);
+        })
+    
+    }else{
+    }
 }
 
 function checkAuthLevel(req) {
@@ -273,35 +279,42 @@ function testMongoDB(config) {
 function initConfigFile() {
     let emptyConfFile = {
         http_server: {
-            "bind_ip": "0.0.0.0",
-            "port": 80
+            bind_ip: "0.0.0.0",
+            port: 80
         },
         database: {
             mysql: {
-                "host": "hostname.xx",
-                "port": 3306,
-                "user": "username",
-                "password": "password",
-                "database": "my_db"
+                host: "hostname.xx",
+                port: 3306,
+                user: "username",
+                password: "password",
+                database: "my_db"
             },
             mongo: {
-                "host": "0.0.0.0",
-                "port": 27017,
+                host: "0.0.0.0",
+                port: 27017,
                 //"_user": "",
                 //"_password": "",
-                "database": "DCS_MissionBooking"
+                database: "DCS_MissionBooking"
             }
         },
         missions_directories: [
             "missions"
         ],
-        app_personalization:{
-            name: "DCS Mission Booking"  
+        app_personalization: {
+            name: "DCS Mission Booking"
         },
         other: {
             force_https: true
         }
     }
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    //let q = await rl.question("Which is the app personalized name? Leave empty to keep the default name: " + emptyConfFile.app_personalization.name + "\n> ");
+
     if (!fs.existsSync("conf.json")) {
         fs.writeFileSync("conf.json", JSON.stringify(emptyConfFile, null, "\t"));
         console.log("Configuration file created, set your parameters and rerun \"node start\".\nTerminating execution...");
