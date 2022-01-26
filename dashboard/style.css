@@ -124,10 +124,10 @@ th:last-of-type{
     display: inline-block;
     text-align: center;
     line-height: 20px;
+    margin-right: 10px;
 }
 .playerContainer.booked .inFlightNumber{
     background: #eee;
-
 }
 /*tr:hover{
     background-color: var(--bgColor2);

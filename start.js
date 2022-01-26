@@ -88,7 +88,7 @@ function start(){
                             if (err) res.sendStatus(500);
                             else {
                                 res.send(insData);
-                                console.log("Inserted ", insData);
+                                console.log("PUblished mission ", insData);
                             }
                         })
     
@@ -130,11 +130,9 @@ function start(){
                     if (err) res.sendStatus(500);
                     else {
                         res.send(dbRes);
-                        console.log("DB Res ", dbRes);
+                        //console.log("DB Res ", dbRes);
                     }
                 })
-    
-    
             });
         })
     
@@ -151,16 +149,26 @@ function start(){
                 var dbo = db.db(dbName);
                 console.log(req.query);
     
-                let update = "parsedMiz."+parm.sideColor+"."+parm.flight+".units."+parm.inflightNumber+".player";
+                let findStr = "parsedMiz."+parm.sideColor+"."+parm.flight+".units."+parm.inflightNumber;
+                let update = findStr+".player";
                 console.log(update);
 
                 let playerName = "TestPlayer3adwad";
 
-                dbo.collection("missions").updateOne({_id:ObjectID(parm.missionId)},{$set:{[update]:playerName}}, (err, dbRes) => {
+                dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
                     if (err) res.sendStatus(500);
                     else {
-                        res.send({playerName: playerName})
-                        console.log("DB Res ", dbRes);
+                        let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
+                        if(!slot.player || slot.player==""){
+                            dbo.collection("missions").updateOne({_id:ObjectID(parm.missionId)},{$set:{[update]:playerName}}, (err, dbRes) => {
+                                if (err) res.sendStatus(500);
+                                else {
+                                    res.send({playerName: playerName})
+                                }
+                            })
+                        }else{
+                            res.sendStatus(403);
+                        }
                     }
                 })
     
