@@ -2,6 +2,7 @@ node_modules/
 **/*.miz
 conf.json
 **/*.bak
+**/*.url
 
 !missions/example.miz
 !node_modules/argon2

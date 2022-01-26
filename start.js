@@ -46,6 +46,16 @@ function start(){
                 express.static('admin')(req, res, next);
             else res.sendStatus(403)
         });
+        app.use('/api/admin*', function (req, res, next) {
+            console.log("Checking permission");
+            if(checkAuthLevel())
+                next();
+            else
+                res.sendStatus(403)
+        })
+        app.get("/api/admin",(req,res,next)=>{
+            res.send({status: "Ok"});
+        })
         app.get('/api/admin/getAllMissionFiles', function (req, res, next) {
             //console.log("GET=> ",req.query)
             //console.log("POST=> ",req.body)
@@ -130,6 +140,32 @@ function start(){
     
         app.get('/api/getAppName', function (req, res, next) {
             res.send(config.app_personalization.name);
+        })
+
+        app.get('/api/bookMission',(req,res,next)=>{
+            let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
+            let dbName = config.database.mongo._database;
+            const parm = req.query;
+            let client = MongoClient.connect(url, function (err, db) {
+                if (err) throw err;
+                var dbo = db.db(dbName);
+                console.log(req.query);
+    
+                let update = "parsedMiz."+parm.sideColor+"."+parm.flight+".units."+parm.inflightNumber+".player";
+                console.log(update);
+
+                let playerName = "TestPlayer3adwad";
+
+                dbo.collection("missions").updateOne({_id:ObjectID(parm.missionId)},{$set:{[update]:playerName}}, (err, dbRes) => {
+                    if (err) res.sendStatus(500);
+                    else {
+                        res.send({playerName: playerName})
+                        console.log("DB Res ", dbRes);
+                    }
+                })
+    
+    
+            });
         })
     
     }else{
@@ -258,6 +294,8 @@ function testDB() {
         });
     });
 }
+
+
 
 function testMongoDB(config) {
     let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
