@@ -17,9 +17,10 @@ $(document).ready(() => {
             const missionId = e.target.value;
             send_request("/api/getMissionDetails", "GET", { missionId: missionId }, (data) => {
                 const jsonData = JSON.parse(data);
-                console.log(jsonData.parsedMiz.blue);
+                console.log(jsonData);
+                //console.log(jsonData.parsedMiz.blue);
                 $("#tableContainer").find("table").remove();
-                createTable(jsonData.parsedMiz, "blue/red")
+                createTable(jsonData.parsedMiz, jsonData._id, "blue/red")
                 //createTable(jsonData.parsedMiz.red, "red")
 
             });
@@ -27,7 +28,7 @@ $(document).ready(() => {
     })
 })
 
-function createTable(parsedMiz, sideFilter) {
+function createTable(parsedMiz, missionId, sideFilter) {
     let table = $("<table><tr><th>Flight</th><th>Task</th><th>Slots</th></tr></table>");
     //$(".mainContainer")
     Object.entries(parsedMiz).forEach(entry => {
@@ -58,8 +59,12 @@ function createTable(parsedMiz, sideFilter) {
                         let td = $("<td>" + v + "</td>");
                         let tdElm = $("<td class='playerContainer " + sideColor + "'><span class='inFlightNumber'>" + k + "</span></td>");
                         tdElm.on("click",()=>{
-                            console.log({sideColor: sideColor, flight: flightName, spec: v});
+                            let par = {missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k};
+                            console.log(par);
                             tdElm.toggleClass("booked");
+                            send_request("/api/bookMission", "GET", par, (data) => {
+                                console.log(JSON.parse(data));
+                            })
                         })
                         if (k == 1)
                             row.append(tdElm);
