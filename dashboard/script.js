@@ -1,6 +1,6 @@
 $(document).ready(() => {
     send_request("/api/getAppName", "GET", null, (data) => {
-        if(data!=""){
+        if (data != "") {
             $("#appName").html(data)
             $("title").html(data)
         }
@@ -42,13 +42,13 @@ function createTable(parsedMiz, missionId, sideFilter) {
                     table.append("<tr class='rowSpacer'></tr>");
                     const unitsCount = count(v.units);
                     let flightName = k;
-                    let row = $("<tr><td rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>"+v.aircraftType+"</span><span class='groupName'>" + k + "</span></div></td></tr>");
+                    let row = $("<tr><td rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.aircraftType + "</span><span class='groupName'>" + k + "</span></div></td></tr>");
                     table.append(row);
                     Object.entries(v).forEach(entry => {
                         const [k, v] = entry;
-                        if(["task"].includes(k)){
+                        if (["task"].includes(k)) {
                             if (!isObject(v)) {
-                                let td = $("<td class='colId "+k+" "+v+"' rowspan=\"" + unitsCount + "\">" + v + "</td>");
+                                let td = $("<td class='colId " + k + " " + v + "' rowspan=\"" + unitsCount + "\">" + v + "</td>");
                                 row.append(td);
                             }
                         }
@@ -57,18 +57,29 @@ function createTable(parsedMiz, missionId, sideFilter) {
                     Object.entries(v.units).forEach(entry => {
                         const [k, v] = entry;
                         let td = $("<td>" + v + "</td>");
-                        let tdElm = $("<td class='playerContainer " + sideColor + "'><span class='inFlightNumber'>" + k + "</span></td>");
-                        tdElm.on("click",()=>{
-                            let par = {missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k};
-                            console.log(par);
-                            tdElm.toggleClass("booked");
-                            send_request("/api/bookMission", "GET", par, (data) => {
-                                console.log(JSON.parse(data));
+                        let playerBooked = v.player && v.player != "";
+                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + "'><span class='inFlightNumber'>" + k + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></td>");
+                        if (!playerBooked) {
+                            tdElm.on("click", () => {
+                                let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
+                                //console.log(par);
+                                tdElm.toggleClass("booked");
+                                send_request("/api/bookMission", "GET", par, (data) => {
+                                    const jsonData = JSON.parse(data);
+                                    tdElm.find(".playerNameContainer").html(jsonData.playerName);
+                                    
+                                    tdElm.off("click");
+                                    tdElm.on("click", () => {
+                                        send_request("/api/dismissMission", "GET", par, (data) => {
+                                            
+                                        })
+                                    })
+                                })
                             })
-                        })
+                        }
                         if (k == 1)
                             row.append(tdElm);
-                        else{
+                        else {
                             let tmpTr = $("<tr></tr>")
                             tmpTr.append(tdElm);
                             table.append(tmpTr);
