@@ -5,4 +5,4 @@ conf.json
 **/*.url
 
 !missions/example.miz
-!node_modules/argon2/
+!node_modules/argon2/**
