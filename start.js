@@ -92,16 +92,29 @@ function start() {
             }
             else res.sendStatus(403)
         })
-        app.post('api/login', (req, res, next) => {
-            mongoConn((dbo) => {
-                let insData = { token: randomString(), userId: -1, accessLevel: 0 };
-                dbo.collection("sessions").insertOne(insData, (err, dbRes) => {
+        app.post('/api/login', (req, res, next) => {
+            const parm = req.body;
+            mysqlConn((con) => {
+                con.query("SELECT user_password FROM forums_users LIMIT 1", function (err, result, fields) {
                     if (err) res.sendStatus(500);
-                    else {
-                        res.send(insData);
-                        console.log("User logged in:", insData);
-                    }
-                })
+                    console.log("Result: ", result[1].user_password);
+                    verifyArgon2(result[1].user_password, parm.password, (val) => {
+                        if (val) {
+                            /*mongoConn((dbo) => {
+                                let insData = { token: randomString(), userId: -1, accessLevel: 0 };
+                                dbo.collection("sessions").insertOne(insData, (err, dbRes) => {
+                                    if (err) res.sendStatus(500);
+                                    else {
+                                        console.log("User logged in:", insData);
+                                        res.send(insData);
+                                    }
+                                })
+                            })*/
+                        } else {
+                            res.sendStatus(401)
+                        }
+                    })
+                });
             })
         })
         app.get('/api/getAllMissions', function (req, res, next) {
@@ -201,7 +214,7 @@ function start() {
             let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
             let dbName = config.database.mongo._database;
             let client = MongoClient.connect(url, function (err, db) {
-                if (err) throw err;
+                if (err) res.sendStatus(500);
                 var dbo = db.db(dbName);
                 connCallback(dbo);
             });
@@ -209,7 +222,7 @@ function start() {
         function mysqlConn(connCallback) {
             var con = mysql.createConnection(config.database.mysql);
             con.connect(function (err) {
-                if (err) throw err;
+                if (err) res.sendStatus(500);
                 connCallback(con);
             });
         }
@@ -335,10 +348,10 @@ function testDB() {
     var con = mysql.createConnection(config.database.mysql);
 
     con.connect(function (err) {
-        if (err) throw err;
+        if (err) res.sendStatus(500);
         console.log("Connected!");
         con.query("SELECT user_password FROM forums_users LIMIT 10", function (err, result, fields) {
-            if (err) throw err;
+            if (err) res.sendStatus(500);
             console.log("Result: ", result[1].user_password);
         });
     });
@@ -347,11 +360,11 @@ function testMongoDB(config) {
     let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
     let dbName = config.database.mongo._database;
     let client = MongoClient.connect(url, function (err, db) {
-        if (err) throw err;
+        if (err) res.sendStatus(500);
         var dbo = db.db(dbName);
 
         dbo.collection("missions").find({}).toArray(function (err, result) {
-            if (err) throw err;
+            if (err) res.sendStatus(500);
             console.log(result);
             //let res = await dbo.collection("test").insertOne({})
             db.close();
@@ -408,8 +421,17 @@ function initConfigFile() {
     return false;
 }
 function randomString(size = 64) {
-    return Crypto
+    return crypto
         .randomBytes(size)
         .toString('base64')
         .slice(0, size)
+}
+
+async function verifyArgon2(hash, comp, callback) {
+    try {
+        //let pwdCheck = argon2.verify("$argon2id$v=19$m=16,t=2,p=1$YWlqYW93ZGlqd2Fzdw$jgdVmVItY4EfwZTwJWr6OA", "password");
+        let pwdCheck = argon2.verify(hash, comp)
+        pwdCheck.then(callback)
+    } catch (err) {
+    }
 }
