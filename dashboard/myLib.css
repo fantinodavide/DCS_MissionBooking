@@ -22,19 +22,19 @@
     outline: none;
 }
 ::-webkit-scrollbar {
-    height: 4px;
-    width: 4px;
+    height: 5px;
+    width: 10px;
 }
 ::-webkit-scrollbar-track {
-    background: #555;
+    background: #333;
     border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 2px;
+    background: #555;
+    border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #aaa;
+    background: #666;
 }
 button{
     /*display: flex;

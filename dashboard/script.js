@@ -42,7 +42,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                     table.append("<tr class='rowSpacer'></tr>");
                     const unitsCount = count(v.units);
                     let flightName = k;
-                    let row = $("<tr><td rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.aircraftType + "</span><span class='groupName'>" + k + "</span></div></td></tr>");
+                    let row = $("<tr><td class='flightTD' rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.aircraftType + "</span><span class='groupName'>" + k + "</span></div></td></tr>");
                     table.append(row);
                     Object.entries(v).forEach(entry => {
                         const [k, v] = entry;
@@ -58,24 +58,46 @@ function createTable(parsedMiz, missionId, sideFilter) {
                         const [k, v] = entry;
                         let td = $("<td>" + v + "</td>");
                         let playerBooked = v.player && v.player != "";
-                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + "'><span class='inFlightNumber'>" + k + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></td>");
-                        if (!playerBooked) {
-                            tdElm.on("click", () => {
-                                let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
-                                //console.log(par);
-                                tdElm.toggleClass("booked");
+                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + k + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
+                        tdElm[0].playerBooked = playerBooked;
+                        let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
+                        
+                        tdElm.click(()=>{
+                            if (!tdElm[0].playerBooked){
+                                _bookMission();
+                            }else{    
+                                _dismissMission();
+                            }
+                        })
+
+                        function _bookMission(){
+                            /*console.log("[EVT SET] Book mission");
+                            tdElm.click(() => {*/
+                                console.log("Booking mission");
                                 send_request("/api/bookMission", "GET", par, (data) => {
                                     const jsonData = JSON.parse(data);
+                                    tdElm.addClass("booked");
                                     tdElm.find(".playerNameContainer").html(jsonData.playerName);
-                                    
-                                    tdElm.off("click");
-                                    tdElm.on("click", () => {
-                                        send_request("/api/dismissMission", "GET", par, (data) => {
-                                            
-                                        })
-                                    })
+                                    tdElm[0].playerBooked = true;
                                 })
-                            })
+                            //})
+                        }
+                        function _dismissMission(){
+                            /*console.log("[EVT SET] Dismiss mission");
+                            tdElm.click(() => {*/
+                                console.log("Dissmissing mission");
+                                send_request("/api/dismissMission", "GET", par, (data) => {
+                                    const jsonData = JSON.parse(data);
+                                    //console.log(jsonData);
+                                    if(jsonData.removed == "ok"){
+                                        tdElm.removeClass("booked");
+                                        tdElm[0].playerBooked = false;
+                                        setTimeout(()=>{
+                                            tdElm.find(".playerNameContainer").html("");
+                                        },100)
+                                    }
+                                })
+                            //})
                         }
                         if (k == 1)
                             row.append(tdElm);
