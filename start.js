@@ -10,6 +10,7 @@ const MongoClient = mongo.MongoClient;
 const ObjectID = mongo.ObjectID;
 const readline = require('readline');
 const crypto = require("crypto");
+const argon2 = require("argon2");
 
 const enableServer = true;
 
