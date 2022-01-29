@@ -69,7 +69,7 @@ td[rowspan]:first-of-type{
 
 }
 table{
-    //border-collapse: collapse;
+    //font-size: 14px;
 }
 table, th, td {
   border:none;
@@ -138,25 +138,26 @@ th:last-of-type{
     align-items: stretch;
     margin: 0 10px;
     flex-direction: column;
-    overflow: auto;
+    overflow: hidden;
 }
 .playerContainer{
-    //border-radius: 50px;
-    //border: 1px solid green;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
-    width: 25%;
+    width: 30%;
     cursor: pointer;
     transform: scale(0.85);
     transform-origin: left;
+    white-space: nowrap;
+    text-overflow: clip;
+    overflow: hidden;
 }
 .playerContainer:hover{
     transform: scale(0.90);
     
 }
 .playerContainer.booked{
-    cursor: default;
     transform: scale(1);
+    //cursor: default;
 
 }
 .playerContainer.blue{
@@ -164,6 +165,12 @@ th:last-of-type{
 }
 .playerContainer.red{
     border-left: solid 5px #c55;
+}
+.playerNameContainer{
+    color: #eee0;
+}
+.playerContainer.booked .playerNameContainer{
+    color: #eee;
 }
 .flightContainer{
     position: absolute;
@@ -190,7 +197,7 @@ th:last-of-type{
     flex-direction: column;
     justify-content: center;
     align-self: center;
-    width: 75%;
+    width: 70%;
     background: #b8b8b8;
     color: #000;
     padding: 0 10px;
@@ -199,9 +206,8 @@ th:last-of-type{
     border-bottom-right-radius: 10px;
     box-shadow: 0 2px 10px 0 #0006;
 }
-.flightContainer .groupName{
+.flightContainer .groupName {
     display: inline-block;
-    //overflow: auto;
     flex-grow: 999;
     display: flex;
     flex-direction: column;
@@ -211,6 +217,24 @@ th:last-of-type{
     overflow: hidden;
     text-overflow: ellipsis;
     overflow: auto;
+}
+.horizontalScrolling{
+    display: inline-block;
+    flex-grow: 999;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    //margin: 5px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow: auto;
+}
+td{
+    min-width: 20px;
+}
+.flightTD{
+    min-width: 100px;
 }
 .colId.task{
     width: 1%;
