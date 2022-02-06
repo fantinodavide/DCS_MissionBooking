@@ -1,5 +1,3 @@
-
-
 function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma") {
     //if($(".inputPopup")[0]) return;
     if ($(".loginContainer")[0]) return;
@@ -97,7 +95,7 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma") {
         annullaBtn.trigger("click");
     }
     function getPointerCampo(campo) {
-        return $("[name=" + campo + "]");
+        return $("[name=" + campo + "]").parentNode();
     }
 }
 

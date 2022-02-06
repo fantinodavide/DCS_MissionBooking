@@ -28,6 +28,26 @@ $(document).ready(() => {
     })
 })
 
+function login(){
+    inputPopup("Login",[["Username","Password"],["text","password"]], (json, getPointerCampo, close)=>{
+        send_request("/api/login", "POST", JSON.parse(json), (data) => {
+            const jsonData = JSON.parse(data);
+            console.log(jsonData);
+            switch(jsonData.status){
+                case 'login_ok':
+                    localStorage.setItem("token",jsonData.token);
+                    localStorage.setItem("username",jsonData.username);
+                    close();
+                    break;
+                case 'wrong_credentials':
+                    getPointerCampo("Username").css("background-color","#c008");
+                    getPointerCampo("Password").css("background-color","#c008");
+                    break;
+            }
+        });
+    });
+}
+
 function createTable(parsedMiz, missionId, sideFilter) {
     let table = $("<table><tr><th>Flight</th><th>Task</th><th>Slots</th></tr></table>");
     //$(".mainContainer")

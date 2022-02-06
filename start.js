@@ -11,6 +11,7 @@ const ObjectID = mongo.ObjectID;
 const readline = require('readline');
 const crypto = require("crypto");
 const argon2 = require("argon2");
+const res = require("express/lib/response");
 
 const enableServer = true;
 
@@ -30,6 +31,8 @@ function start() {
             })
         }
 
+        //testDB(config)
+
         app.use(express.urlencoded({ extended: true }));
         app.use((req, res, next) => {
             if (config.other.force_https) {
@@ -42,85 +45,98 @@ function start() {
                 return next();
         });
         app.use('/', express.static('dashboard'));
-
-        app.use('/admin', function (req, res, next) {
+        app.use('/admin*', (req, res, next) => {
             if (checkAuthLevel(req))
-                express.static('admin')(req, res, next);
-            else res.sendStatus(403)
+                next();
+            else res.redirect("/");
+        })
+        app.use('/admin', function (req, res, next) {
+            express.static('admin')(req, res, next);
         });
         app.use('/api/admin*', function (req, res, next) {
             console.log("Checking permission");
             if (checkAuthLevel())
                 next();
-            else
-                res.sendStatus(403)
+            else res.sendStatus(403)
         })
         app.get("/api/admin", (req, res, next) => {
             res.send({ status: "Ok" });
         })
         app.get('/api/admin/getAllMissionFiles', function (req, res, next) {
-            if (checkAuthLevel(req))
-                res.send(JSON.stringify(getAllMissionFiles(config)));
-            else res.sendStatus(403)
+            res.send(JSON.stringify(getAllMissionFiles(config)));
         })
 
         app.get('/api/admin/getMissionDetails', function (req, res, next) {
             res.send(JSON.stringify(flights));
         })
         app.post('/api/admin/publishMission', function (req, res, next) {
-            if (checkAuthLevel(req)) {
-                console.log(req.body);
-                parseMissionFile(req.body.missionFile, (parsedMiz) => {
-                    console.log(parsedMiz);
+            console.log(req.body);
+            parseMissionFile(req.body.missionFile, (parsedMiz) => {
+                console.log(parsedMiz);
 
-                    let insData = new Object(req.body);
-                    insData.parsedMiz = parsedMiz;
+                let insData = new Object(req.body);
+                insData.parsedMiz = parsedMiz;
 
 
-                    mongoConn((dbo) => {
-                        dbo.collection("missions").insertOne(insData, (err, dbRes) => {
-                            if (err) res.sendStatus(500);
-                            else {
-                                res.send(insData);
-                                console.log("PUblished mission ", insData);
-                            }
-                        })
-                    });
+                mongoConn((dbo) => {
+                    dbo.collection("missions").insertOne(insData, (err, dbRes) => {
+                        if (err) serverError(err);
+                        else {
+                            res.send(insData);
+                            console.log("PUblished mission ", insData);
+                        }
+                    })
                 });
-
-                //res.sendStatus(200);
-            }
-            else res.sendStatus(403)
+            });
         })
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
+            //console.log(parm);
             mysqlConn((con) => {
-                con.query("SELECT user_password FROM forums_users LIMIT 1", function (err, result, fields) {
-                    if (err) res.sendStatus(500);
-                    console.log("Result: ", result[1].user_password);
-                    verifyArgon2(result[1].user_password, parm.password, (val) => {
-                        if (val) {
-                            /*mongoConn((dbo) => {
-                                let insData = { token: randomString(), userId: -1, accessLevel: 0 };
-                                dbo.collection("sessions").insertOne(insData, (err, dbRes) => {
-                                    if (err) res.sendStatus(500);
-                                    else {
-                                        console.log("User logged in:", insData);
-                                        res.send(insData);
-                                    }
-                                })
-                            })*/
-                        } else {
-                            res.sendStatus(401)
-                        }
-                    })
+                //con.query("SELECT user_password FROM forums_users LIMIT 1", function (err, result, fields) {
+                con.query("SELECT user_id, username, user_email, user_password, group_name, rank_title FROM phpbb_users INNER JOIN phpbb_groups ON (phpbb_users.group_id = phpbb_groups.group_id) INNER JOIN phpbb_ranks ON (phpbb_users.user_rank = phpbb_ranks.rank_id) WHERE (username = '" + parm.Username + "' OR user_email = '" + parm.Username + "')", function (err, result, fields) {
+                    if (err) serverError(err);
+                    if (result) {
+                        //console.log("Result: ", result[0]);
+                        verifyArgon2(result[0].user_password, parm.Password, (val) => {
+                            if (val) {
+                                let userDt = result[0];
+                                delete userDt.user_password;
+                                let error;
+                                do {
+                                    error = false;
+                                    userDt.token = randomString();
+                                    mongoConn((dbo) => {
+                                        dbo.collection("sessions").findOne({ token: userDt.token }, (err, dbRes) => {
+                                            if (err) res.sendStatus(500);
+                                            else if (dbRes == null) {
+                                                dbo.collection("sessions").insertOne(userDt, (err, dbRes) => {
+                                                    if (err) res.sendStatus(500);
+                                                    else {
+                                                        res.send({ status: "login_ok", userDt: userDt });
+                                                    }
+                                                })
+                                            } else {
+                                                error = true;
+                                            }
+                                        })
+                                    })
+                                } while (error);
+                            } else {
+                                res.send({ status: "wrong_credentials" });
+                                //res.sendStatus(401)
+                            }
+                        })
+                    } else {
+                        res.send({ status: "wrong_credentials" });
+                    }
                 });
             })
         })
         app.get('/api/getAllMissions', function (req, res, next) {
             mongoConn((dbo) => {
                 dbo.collection("missions").find({}, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(5).toArray((err, dbRes) => {
-                    if (err) res.sendStatus(500);
+                    if (err) serverError(err);
                     else {
                         res.send(dbRes);
                         //console.log("DB Res ", dbRes);
@@ -132,7 +148,7 @@ function start() {
             const parm = req.query;
             mongoConn((dbo) => {
                 dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { parsedMiz: 1 } }, (err, dbRes) => {
-                    if (err) res.sendStatus(500);
+                    if (err) serverError(err);
                     else {
                         res.send(dbRes);
                         //console.log("DB Res ", dbRes);
@@ -158,12 +174,12 @@ function start() {
                 let playerName = "TestPlayer3adwad";
 
                 dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
-                    if (err) res.sendStatus(500);
+                    if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
                         if (!slot.player || slot.player == "") {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName } }, (err, dbRes) => {
-                                if (err) res.sendStatus(500);
+                                if (err) serverError(err);
                                 else {
                                     res.send({ playerName: playerName })
                                 }
@@ -190,12 +206,12 @@ function start() {
 
                 let playerName = "";
                 dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
-                    if (err) res.sendStatus(500);
+                    if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
                         if (slot.player && slot.player != "") {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName } }, (err, dbRes) => {
-                                if (err) res.sendStatus(500);
+                                if (err) serverError(err);
                                 else {
                                     res.send({ removed: "ok" })
                                 }
@@ -214,7 +230,7 @@ function start() {
             let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
             let dbName = config.database.mongo._database;
             let client = MongoClient.connect(url, function (err, db) {
-                if (err) res.sendStatus(500);
+                if (err) serverError(err);
                 var dbo = db.db(dbName);
                 connCallback(dbo);
             });
@@ -222,7 +238,7 @@ function start() {
         function mysqlConn(connCallback) {
             var con = mysql.createConnection(config.database.mysql);
             con.connect(function (err) {
-                if (err) res.sendStatus(500);
+                if (err) serverError(err);
                 connCallback(con);
             });
         }
@@ -233,8 +249,30 @@ function start() {
     }
 }
 
+function serverError(err) {
+    res.sendStatus(500);
+    console.log("[SERVER ERROR] ", err);
+}
+
 function checkAuthLevel(req) {
     return true;
+}
+function checkLogin(req,res,callback) {
+    mongoConn((dbo) => {
+        dbo.collection("sessions").findOne({ token: userDt.token }, (err, dbRes) => {
+            if (err) res.sendStatus(500);
+            else if (dbRes) {
+                dbo.collection("sessions").insertOne(userDt, (err, dbRes) => {
+                    if (err) res.sendStatus(500);
+                    else {
+                        callback();
+                    }
+                })
+            } else {
+                res.send({ status: "login_required" });
+            }
+        })
+    })
 }
 
 function getAllMissionFiles(config) {
@@ -342,20 +380,19 @@ function getMissionFlightsFromString(missionFile) {
 function toUpperFirstChar(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
-
-/*
-function testDB() {
+function testDB(config) {
     var con = mysql.createConnection(config.database.mysql);
 
     con.connect(function (err) {
-        if (err) res.sendStatus(500);
+        if (err) console.log("MySQL Test: ", err);
         console.log("Connected!");
-        con.query("SELECT user_password FROM forums_users LIMIT 10", function (err, result, fields) {
-            if (err) res.sendStatus(500);
-            console.log("Result: ", result[1].user_password);
+        con.query("SELECT user_password FROM phpbb_users LIMIT 10", function (err, result, fields) {
+            if (err) console.log("MySQL Test: ", err);
+            console.log("Result: ", result);
         });
     });
 }
+/*
 function testMongoDB(config) {
     let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
     let dbName = config.database.mongo._database;
@@ -403,7 +440,7 @@ function initConfigFile() {
             name: "DCS Mission Booking"
         },
         other: {
-            force_https: true
+            force_https: false
         }
     }
     var rl = readline.createInterface({
