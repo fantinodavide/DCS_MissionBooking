@@ -1,4 +1,12 @@
-function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma") {
+$(document).ready(() => {
+    send_request("/api/getAppName", "GET", null, (data) => {
+        if (data != "") {
+            $("#appName").html(data)
+            $("title").html($("title").html() + " | " + data)
+        }
+    })
+})
+function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma", showAnnulla = true) {
     //if($(".inputPopup")[0]) return;
     if ($(".loginContainer")[0]) return;
 
@@ -45,9 +53,9 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma") {
                 retJson[inp.name] = inp.value;
             } else {
                 $(inp.parentNode).css("background", "#f77");
-                setTimeout(function () { $(inp.parentNode).css("background", "") }, 2000);
                 canSend = false;
             }
+            setTimeout(function () { $(inp.parentNode).css("background", "") }, 2000);
         }
         if (canSend) {
             let json = JSON.stringify(retJson);
@@ -81,7 +89,7 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma") {
         fieldset.append(input);
     }
 
-    btnContainer.append(annullaBtn);
+    if (showAnnulla) btnContainer.append(annullaBtn);
     btnContainer.append(confBtn);
     loginContainer.append(btnContainer);
     $("body").append(loginContainer);
@@ -95,10 +103,17 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma") {
         annullaBtn.trigger("click");
     }
     function getPointerCampo(campo) {
-        return $("[name=" + campo + "]").parentNode();
+        return $("[name=" + campo + "]").parent();
     }
 }
 
 function toUpperFirstChar(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
+}
+function logout(){
+    send_request("/api/logout", "GET", null, (data) => {
+        if (data == "logout_ok") {
+            location.reload();
+        }
+    })
 }
