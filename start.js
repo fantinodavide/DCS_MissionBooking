@@ -11,7 +11,9 @@ const ObjectID = mongo.ObjectID;
 const readline = require('readline');
 const crypto = require("crypto");
 const argon2 = require("argon2");
+const bodyParser = require('body-parser');
 const res = require("express/lib/response");
+const cookieParser = require('cookie-parser');
 
 const enableServer = true;
 
@@ -33,29 +35,27 @@ function start() {
 
         //testDB(config)
 
-        app.use(express.urlencoded({ extended: true }));
-        app.use((req, res, next) => {
-            if (config.other.force_https) {
-                if (req.headers['x-forwarded-proto'] !== 'https')
-                    // the statement for performing our redirection
-                    return res.redirect('https://' + req.headers.host + req.url);
-                else
-                    return next();
-            } else
-                return next();
-        });
+        app.use("/", bodyParser.json());
+        app.use("/", bodyParser.urlencoded({ extended: true }));
+        app.use(cookieParser());
+        app.use(forceHTTPS);
+        //app.use(express.urlencoded({ extended: true }));
+
         app.use('/', express.static('dashboard'));
+        app.use('/*', getSession);
+        app.use('/api/*', requireLogin);
+
         app.use('/admin*', (req, res, next) => {
             if (checkAuthLevel(req))
                 next();
             else res.redirect("/");
         })
+
         app.use('/admin', function (req, res, next) {
             express.static('admin')(req, res, next);
         });
         app.use('/api/admin*', function (req, res, next) {
-            console.log("Checking permission");
-            if (checkAuthLevel())
+            if (checkAuthLevel(req))
                 next();
             else res.sendStatus(403)
         })
@@ -113,6 +113,7 @@ function start() {
                                                 dbo.collection("sessions").insertOne(userDt, (err, dbRes) => {
                                                     if (err) res.sendStatus(500);
                                                     else {
+                                                        res.cookie("stok", userDt.token)
                                                         res.send({ status: "login_ok", userDt: userDt });
                                                     }
                                                 })
@@ -132,6 +133,10 @@ function start() {
                     }
                 });
             })
+        })
+        app.use('/api/logout', (req, res, next) => {
+            res.clearCookie("stok")
+            res.send("logout_ok");
         })
         app.get('/api/getAllMissions', function (req, res, next) {
             mongoConn((dbo) => {
@@ -169,16 +174,18 @@ function start() {
 
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + ".player";
+                let updateUserId = findStr + ".user_id";
                 console.log(update);
 
-                let playerName = "TestPlayer3adwad";
+                let playerName = req.userSession.username;
+                let userId = req.userSession.user_id;
 
                 dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
-                        if (!slot.player || slot.player == "") {
-                            dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName } }, (err, dbRes) => {
+                        if (!slot.user_id || slot.user_id==-1) {
+                            dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
                                     res.send({ playerName: playerName })
@@ -202,15 +209,18 @@ function start() {
 
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + ".player";
+                let updateUserId = findStr + ".user_id";
                 console.log(update);
 
                 let playerName = "";
+                let userId = req.userSession.user_id;
+
                 dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
-                        if (slot.player && slot.player != "") {
-                            dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName } }, (err, dbRes) => {
+                        if (slot.player && slot.player != "" && slot.user_id && slot.user_id == userId) {
+                            dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: -1 } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
                                     res.send({ removed: "ok" })
@@ -242,7 +252,53 @@ function start() {
                 connCallback(con);
             });
         }
+        function getSession(req, res, callback = null) {
+            //const parm = Object.keys(req.query).length > 0 ? req.query : req.body;
+            const parm = req.cookies;
+            if (parm.stok != null && parm.stok != "") {
+                mongoConn((dbo) => {
+                    dbo.collection("sessions").findOne({ token: parm.stok }, (err, dbRes) => {
+                        if (err) res.sendStatus(500);
+                        else if (dbRes != null) {
+                            console.log(dbRes);
+                            req.userSession = dbRes
+                            if (callback)
+                                callback();
+                        } else {
+                            //res.send({ status: "login_required" });
+                        }
+                    })
+                })
+            } else {
+                callback();
+            }
+        }
+        function requireLogin(req, res, callback = null) {
+            const parm = Object.keys(req.query).length > 0 ? req.query : req.body;
+            const path = req.originalUrl.replace(/\?.*$/, '');
+            switch (path) {
+                case "/api/getAppName":
+                case "/api/login":
+                    callback();
+                    break;
 
+                default:
+                    console.log("REQ: " + path + "\nSESSION: ", req.userSession, "\nPARM: ", parm);
+                    if (!req.userSession) res.send({ status: "login_required" });
+                    else callback();
+                    break;
+            }
+        }
+        function forceHTTPS(req, res, next) {
+            if (config.other.force_https) {
+                if (req.headers['x-forwarded-proto'] !== 'https')
+                    // the statement for performing our redirection
+                    return res.redirect('https://' + req.headers.host + req.url);
+                else
+                    return next();
+            } else
+                return next();
+        }
 
 
     } else {
@@ -255,24 +311,7 @@ function serverError(err) {
 }
 
 function checkAuthLevel(req) {
-    return true;
-}
-function checkLogin(req,res,callback) {
-    mongoConn((dbo) => {
-        dbo.collection("sessions").findOne({ token: userDt.token }, (err, dbRes) => {
-            if (err) res.sendStatus(500);
-            else if (dbRes) {
-                dbo.collection("sessions").insertOne(userDt, (err, dbRes) => {
-                    if (err) res.sendStatus(500);
-                    else {
-                        callback();
-                    }
-                })
-            } else {
-                res.send({ status: "login_required" });
-            }
-        })
-    })
+    return req.userSession && req.userSession.group_name == "ADMINISTRATORS";
 }
 
 function getAllMissionFiles(config) {
