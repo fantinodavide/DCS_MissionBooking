@@ -29,6 +29,10 @@ $(document).ready(() => {
                 })*/
             }, "Pubblica")
         })
+
+        send_request("/api/admin/testParseMission", "GET", null, (data) => {
+            
+        })
         /*$("#btnPubMission").on("click", () => {
             $("#inpMissionData").find("input").each((key, elm) => {
                 //  if(this != elm)

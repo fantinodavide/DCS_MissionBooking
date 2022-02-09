@@ -73,6 +73,16 @@ function start() {
         app.get('/api/admin/getMissionDetails', function (req, res, next) {
             res.send(JSON.stringify(flights));
         })
+        app.get('/api/admin/testParseMission', function (req, res, next) {
+            console.log(req.body);
+            parseMissionFile("C:\\Users\\Dave\\Saved Games\\DCS.openbeta\\Missions\\F14 Booking Test.miz", (parsedMiz) => {
+                console.log(parsedMiz);
+
+                let insData = new Object(req.body);
+                insData.parsedMiz = parsedMiz;
+                res.send(parsedMiz);
+            });
+        })
         app.post('/api/admin/publishMission', function (req, res, next) {
             console.log(req.body);
             parseMissionFile(req.body.missionFile, (parsedMiz) => {
@@ -149,7 +159,7 @@ function start() {
         })
         app.get('/api/getAllMissions', function (req, res, next) {
             mongoConn((dbo) => {
-                dbo.collection("missions").find({}, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(5).toArray((err, dbRes) => {
+                dbo.collection("missions").find({}, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(10).toArray((err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         res.send(dbRes);
@@ -430,19 +440,35 @@ function getMissionFlightsFromString(missionFile) {
                                                         flightsReturn[side][fName].task = valRaw;
                                                     } if (o5Key == "units") {
                                                         if (!flightsReturn[side][fName]["units"]) flightsReturn[side][fName]["units"] = {};
-                                                        for (let aircraft of o5.value.fields) {
-                                                            flightsReturn[side][fName]["units"][aircraft.key.value] = {}
-                                                            for (let aInfo of aircraft.value.fields) {
-                                                                let aSubInfoKey = aInfo.key.raw.replace(/\"/g, '');
-                                                                let aSubInfoValue;
-                                                                try {
-                                                                    aSubInfoValue = aInfo.value.raw.replace(/\"/g, '');
-                                                                } catch (error) { }
-                                                                if (aSubInfoKey == "type") flightsReturn[side][fName].aircraftType = aSubInfoValue;
-
-                                                                if (["type", "unitid", "name", "parking", "skill"].includes(aSubInfoKey)) {
-                                                                    //console.log((aircraft.key.value + ") " + aSubInfoKey + ": "), aSubInfoValue)
-                                                                    flightsReturn[side][fName]["units"][aircraft.key.value][aSubInfoKey] = aSubInfoValue;
+                                                        let repeats = 0;
+                                                        for(let _rep = -1; _rep < repeats; _rep++){
+                                                            for (let aircraft of o5.value.fields) {
+                                                                let slotN = aircraft.key.value;
+                                                                if(repeats > 0) slotN+= repeats;
+                                                                flightsReturn[side][fName]["units"][slotN] = {}
+                                                                for (let aInfo of aircraft.value.fields) {
+                                                                    let aSubInfoKey = aInfo.key.raw.replace(/\"/g, '');
+                                                                    let aSubInfoValue;
+                                                                    try {
+                                                                        aSubInfoValue = aInfo.value.raw.replace(/\"/g, '');
+                                                                    } catch (error) { 
+                                                                        aSubInfoValue = aInfo.value;
+                                                                    }
+                                                                    if (aSubInfoKey == "type"){
+                                                                        flightsReturn[side][fName].aircraftType = aSubInfoValue;
+                                                                        if(aSubInfoValue.includes("F-14") && repeats == 0){
+                                                                            repeats = 1;
+                                                                        }
+                                                                    }else if (aSubInfoKey == "callsign") flightsReturn[side][fName].callsign = parseCallsign(aSubInfoValue.fields);
+    
+                                                                    if (["type", "unitid", "name", "parking", "skill"].includes(aSubInfoKey)) {
+                                                                        //console.log((slotN + ") " + aSubInfoKey + ": "), aSubInfoValue)
+                                                                        if (aSubInfoKey == "callsign") {
+                                                                            console.log("callsign", aSubInfoValue);
+                                                                            flightsReturn[side][fName]["units"][slotN][aSubInfoKey] = aSubInfoValue.name;
+                                                                        } else
+                                                                            flightsReturn[side][fName]["units"][slotN][aSubInfoKey] = aSubInfoValue;
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -463,6 +489,15 @@ function getMissionFlightsFromString(missionFile) {
         }
     }
     return flightsReturn
+}
+function LUARealString(txt){
+    return txt.replace(/\"/g, '')
+}
+function parseCallsign(callsignLua){
+    let ret = {name: "", group: parseInt(LUARealString(callsignLua[1].value.raw)), pilot: parseInt(LUARealString(callsignLua[2].value.raw))}
+    if(callsignLua[3])
+        ret.name = LUARealString(callsignLua[3].value.raw).replace(ret.group.toString() + ret.pilot.toString(),"");
+    return ret;
 }
 function toUpperFirstChar(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
