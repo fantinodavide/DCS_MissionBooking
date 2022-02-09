@@ -10,7 +10,7 @@ function send_request(url, method, parameters, callback) {
 		data: sendDt,
 		timeout: 10000,
 		success: (data) => {
-			console.log(data);
+			//console.log(data);
 			let jsonData;
 			try {
 				jsonData = JSON.parse(data);

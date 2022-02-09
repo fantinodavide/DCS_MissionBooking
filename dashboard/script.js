@@ -30,8 +30,10 @@ function login(){
             console.log(jsonData);
             switch(jsonData.status){
                 case 'login_ok':
+                    console.log(jsonData.userDt);
                     localStorage.setItem("stok",jsonData.userDt.token);
                     localStorage.setItem("username",jsonData.userDt.username);
+                    localStorage.setItem("uid",jsonData.userDt.id)
                     close();
                     location.reload();
                     break;
@@ -46,6 +48,7 @@ function login(){
 
 function createTable(parsedMiz, missionId, sideFilter) {
     let table = $("<table><tr><th>Flight</th><th>Task</th><th>Slots</th></tr></table>");
+    let myBookedMissions = [];
     //$(".mainContainer")
     Object.entries(parsedMiz).forEach(entry => {
         const [k, v] = entry;
@@ -78,29 +81,43 @@ function createTable(parsedMiz, missionId, sideFilter) {
                         tdElm[0].playerBooked = playerBooked;
                         let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
                         
-                        tdElm.click(()=>{
-                            if (!tdElm[0].playerBooked){
-                                _bookMission();
-                            }else{    
-                                _dismissMission();
+                        if(!v.user_id || v.user_id==-1 || v.user_id == parseInt(getCookie("uid"))){
+                            tdElm.css("cursor","pointer")
+                            tdElm.click(()=>{
+                                if (!tdElm[0].playerBooked){
+                                    _bookMission();
+                                }else{    
+                                    _dismissMission();
+                                }
+                            })
+                            if(v.user_id == parseInt(getCookie("uid"))){
+                                myBookedMissions.push(tdElm);
+
                             }
-                        })
+                        }
 
                         function _bookMission(){
                             /*console.log("[EVT SET] Book mission");
                             tdElm.click(() => {*/
+                                for(let t of myBookedMissions){
+                                    if(t!=null)
+                                        t.trigger("click");
+                                }
+                                myBookedMissions = [];
                                 console.log("Booking mission");
                                 send_request("/api/bookMission", "GET", par, (data) => {
                                     const jsonData = JSON.parse(data);
                                     tdElm.addClass("booked");
                                     tdElm.find(".playerNameContainer").html(jsonData.playerName);
                                     tdElm[0].playerBooked = true;
+                                    myBookedMissions.push(tdElm)
                                 })
                             //})
                         }
                         function _dismissMission(){
                             /*console.log("[EVT SET] Dismiss mission");
                             tdElm.click(() => {*/
+                                myBookedMissions[myBookedMissions.indexOf(tdElm)]=null;
                                 console.log("Dissmissing mission");
                                 send_request("/api/dismissMission", "GET", par, (data) => {
                                     const jsonData = JSON.parse(data);
@@ -146,5 +163,3 @@ function recursiveCellCreator(k, v) {
 
 function count(obj) { return Object.keys(obj).length; }
 function isObject(elm) { return (typeof elm === 'object' && elm !== null) }
-
-
