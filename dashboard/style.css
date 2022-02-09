@@ -6,7 +6,7 @@
     --txtColor: #fff;
 }
 
-*{
+* {
     padding: 0;
     margin: 0;
     font-family: arial;
@@ -16,7 +16,7 @@
 
 }
 
-body{
+body {
     background: var(--bgColor);
     padding-top: 50px;
 }
@@ -37,7 +37,7 @@ select:hover {
     background-color: var(--bgColor3);
 }
 
-.mainContainer{
+.mainContainer {
     position: relative;
     margin: auto;
     margin-bottom: 10px;
@@ -49,7 +49,8 @@ select:hover {
     padding: 0px 10px;
     flex-direction: column;
 }
-.mainContainer *{
+
+.mainContainer * {
     color: var(--txtColor);
 }
 
@@ -63,56 +64,69 @@ tr{
     flex-direction: row;
     align-content: stretch;
 }*/
-td[rowspan]:first-of-type{
+td[rowspan]:first-of-type {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 
 }
-table{
+
+table {
     //font-size: 14px;
 }
-table, th, td {
-  border:none;
+
+table,
+th,
+td {
+    border: none;
 }
-th, td {
+
+th,
+td {
     position: relative;
-    border:none;
+    border: none;
     padding: 5px 10px;
     border: 0px solid #000;
     background-color: var(--bgColor2);
     overflow: hidden;
 }
-tr{
+
+tr {
     border: 10px solid var(--bgColor);
 }
-tr:first-of-type{
+
+tr:first-of-type {
     border-radius: 50px;
     border: none;
     overflow: hidden;
 }
-tr.rowSpacer{
+
+tr.rowSpacer {
     height: 5px;
 }
 
-td{
+td {
     //border-radius: 5px;
 
 }
-th{
+
+th {
     //border-radius: 10px;
-    margin:10px;
+    margin: 10px;
     padding: 10px;
     background: var(--bgColor3)
 }
-th:first-of-type{
+
+th:first-of-type {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
-th:last-of-type{
+
+th:last-of-type {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
 }
-.inFlightNumber{
+
+.inFlightNumber {
     position: relative;
     padding: 3px;
     background: #888;
@@ -126,13 +140,15 @@ th:last-of-type{
     line-height: 20px;
     margin-right: 10px;
 }
-.playerContainer.booked .inFlightNumber{
+
+.playerContainer.booked .inFlightNumber {
     background: #eee;
 }
+
 /*tr:hover{
     background-color: var(--bgColor2);
 }*/
-#tableContainer{
+#tableContainer {
     display: flex;
     justify-content: center;
     align-items: stretch;
@@ -140,7 +156,8 @@ th:last-of-type{
     flex-direction: column;
     overflow: hidden;
 }
-.playerContainer{
+
+.playerContainer {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     width: 30%;
@@ -151,28 +168,35 @@ th:last-of-type{
     text-overflow: clip;
     overflow: hidden;
 }
-.playerContainer:hover{
+
+.playerContainer:hover {
     transform: scale(0.90);
-    
+
 }
-.playerContainer.booked{
+
+.playerContainer.booked {
     transform: scale(1);
     //cursor: default;
 
 }
-.playerContainer.blue{
+
+.playerContainer.blue {
     border-left: solid 5px #45c;
 }
-.playerContainer.red{
+
+.playerContainer.red {
     border-left: solid 5px #c55;
 }
-.playerNameContainer{
+
+.playerNameContainer {
     color: #eee0;
 }
-.playerContainer.booked .playerNameContainer{
+
+.playerContainer.booked .playerNameContainer {
     color: #eee;
 }
-.flightContainer{
+
+.flightContainer {
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -185,12 +209,14 @@ th:last-of-type{
     padding: 0px;
     justify-content: center;
 }
-.flightContainer .aircraftType, .flightContainer .task{
+
+.flightContainer .aircraftType,
+.flightContainer .task {
     /*
     top: 0px;
     left: 50%;
     transform: translateX(-50%);*/
-    position:relative;
+    position: relative;
     height: 25px;
     min-height: 25px;
     display: flex;
@@ -206,6 +232,7 @@ th:last-of-type{
     border-bottom-right-radius: 10px;
     box-shadow: 0 2px 10px 0 #0006;
 }
+
 .flightContainer .groupName {
     display: inline-block;
     flex-grow: 999;
@@ -218,7 +245,8 @@ th:last-of-type{
     text-overflow: ellipsis;
     overflow: auto;
 }
-.horizontalScrolling{
+
+.horizontalScrolling {
     display: inline-block;
     flex-grow: 999;
     display: flex;
@@ -230,22 +258,27 @@ th:last-of-type{
     text-overflow: ellipsis;
     overflow: auto;
 }
-td{
+
+td {
     min-width: 20px;
 }
-.flightTD{
+
+.flightTD {
     min-width: 100px;
 }
-.colId.task{
+
+.colId.task {
     width: 1%;
     min-width: 50px;
 }
-.colId.task.Nothing{
-    color:#666;
+
+.colId.task.Nothing {
+    color: #666;
 }
-header{
+
+header {
     position: fixed;
-    top:0;
+    top: 0;
     left: 0;
     width: 100%;
     height: 50px;
@@ -259,11 +292,17 @@ header{
     z-index: 999;
     font-size: 14px;
 }
-h1,h2,h3,h4,h5{
+
+h1,
+h2,
+h3,
+h4,
+h5 {
     font-weight: normal;
-    
+
 }
-#menu{
+
+#menu {
     position: fixed;
     top: 50px;
     left: -250px;
@@ -276,7 +315,8 @@ h1,h2,h3,h4,h5{
     box-shadow: 2px 0px 10px 0 #0008;
     transition: all 200ms ease-in-out;
 }
-#menu a{
+
+#menu a {
     text-decoration: none;
     font-style: normal;
     color: var(--txtColor1);
@@ -286,20 +326,26 @@ h1,h2,h3,h4,h5{
     //margin-bottom: 0px;
     background: var(--bgColor2);
 }
-#menu a:hover{
+
+#menu a:hover {
     background: var(--bgColor3);
 }
-#menu.show{
+
+#menu.show {
     left: 0px;
 }
-#menuToggleContainer{
+
+#menuToggleContainer {
     position: absolute;
     width: 30px;
     height: 30px;
     left: 10px;
     cursor: pointer;
 }
-#toggleMenu, #toggleMenu::before, #toggleMenu::after{
+
+#toggleMenu,
+#toggleMenu::before,
+#toggleMenu::after {
     content: "";
     position: absolute;
     left: 0;
@@ -317,6 +363,7 @@ h1,h2,h3,h4,h5{
     transform-origin: center;
     transition: all 300ms ease-in-out, background 150ms ease-in-out;
 }
+
 /*#toggleMenu::before, #toggleMenu::after{
     position: absolute;
     left: 0;
@@ -329,23 +376,44 @@ h1,h2,h3,h4,h5{
     margin: 0;
     border-radius: 10px;
 }*/
-#toggleMenu::before{
+#toggleMenu::before {
     top: -8px;
 }
-#toggleMenu::after{
+
+#toggleMenu::after {
     top: 8px;
 }
-#menuToggleContainer.show #toggleMenu{
+
+#menuToggleContainer.show #toggleMenu {
     background: #0000;
 }
-#menuToggleContainer.show #toggleMenu::after, #menuToggleContainer.show #toggleMenu::before{
+
+#menuToggleContainer.show #toggleMenu::after,
+#menuToggleContainer.show #toggleMenu::before {
     top: 0;
 }
-#menuToggleContainer.show #toggleMenu::after{
+
+#menuToggleContainer.show #toggleMenu::after {
     transform: rotate(135deg);
     opacity: 1;
 }
-#menuToggleContainer.show #toggleMenu::before{
+
+#menuToggleContainer.show #toggleMenu::before {
     transform: rotate(225deg);
     opacity: 1;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-internal-autofill-selected,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+    border: none !important;
+    -webkit-text-fill-color: var(--txtColor) !important;
+    -webkit-box-shadow: 0 0 0px 1000px var(--bgColor1) inset !important;
 }
