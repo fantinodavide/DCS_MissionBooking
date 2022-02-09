@@ -144,7 +144,7 @@ th:last-of-type{
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     width: 30%;
-    cursor: pointer;
+    //cursor: pointer;
     transform: scale(0.85);
     transform-origin: left;
     white-space: nowrap;
@@ -262,4 +262,90 @@ header{
 h1,h2,h3,h4,h5{
     font-weight: normal;
     
+}
+#menu{
+    position: fixed;
+    top: 50px;
+    left: -250px;
+    width: 250px;
+    height: calc(100% - 50px);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    background: var(--bgColor4);
+    box-shadow: 2px 0px 10px 0 #0008;
+    transition: all 200ms ease-in-out;
+}
+#menu a{
+    text-decoration: none;
+    font-style: normal;
+    color: var(--txtColor1);
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 10px;
+    //margin-bottom: 0px;
+    background: var(--bgColor2);
+}
+#menu a:hover{
+    background: var(--bgColor3);
+}
+#menu.show{
+    left: 0px;
+}
+#menuToggleContainer{
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    left: 10px;
+    cursor: pointer;
+}
+#toggleMenu, #toggleMenu::before, #toggleMenu::after{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: calc(50% - 1.5px);
+    width: 30px;
+    height: 2px;
+    background: #fff;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 10px;
+    z-index: 100;
+    display: block;
+    transform-origin: center;
+    transition: all 300ms ease-in-out, background 150ms ease-in-out;
+}
+/*#toggleMenu::before, #toggleMenu::after{
+    position: absolute;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: #fff;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 10px;
+}*/
+#toggleMenu::before{
+    top: -8px;
+}
+#toggleMenu::after{
+    top: 8px;
+}
+#menuToggleContainer.show #toggleMenu{
+    background: #0000;
+}
+#menuToggleContainer.show #toggleMenu::after, #menuToggleContainer.show #toggleMenu::before{
+    top: 0;
+}
+#menuToggleContainer.show #toggleMenu::after{
+    transform: rotate(135deg);
+    opacity: 1;
+}
+#menuToggleContainer.show #toggleMenu::before{
+    transform: rotate(225deg);
+    opacity: 1;
 }

@@ -3,5 +3,6 @@ node_modules/
 conf.json
 **/*.bak
 **/*.url
+ignored/
 
 !missions/example.miz

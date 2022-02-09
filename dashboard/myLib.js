@@ -5,6 +5,32 @@ $(document).ready(() => {
             $("title").html($("title").html() + " | " + data)
         }
     })
+    send_request("/api/getMenuUrls", "GET", {}, (data) => {
+        const jsonData = JSON.parse(data).sort((a, b) => { return a.order - b.order });
+        //console.log(jsonData);
+        for (let u of jsonData) {
+            let a = $("<a></a>");
+            if (u.type == "redirect")
+                a.attr("href", u.url);
+            else {
+                console.log("request");
+                switch (u.url) {
+                    case "/api/logout":
+                        a.on("click", logout)
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            a.html(u.name);
+            $("#menu").append(a);
+        }
+    })
+    $("#menuToggleContainer").click((e) => {
+        $("#menu").toggleClass("show");
+        $("#menuToggleContainer").toggleClass("show");
+    })
 })
 function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma", showAnnulla = true) {
     //if($(".inputPopup")[0]) return;
@@ -110,10 +136,25 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma", showAnn
 function toUpperFirstChar(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
-function logout(){
+function logout() {
     send_request("/api/logout", "GET", null, (data) => {
         if (data == "logout_ok") {
             location.reload();
         }
     })
+}
+function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
 }

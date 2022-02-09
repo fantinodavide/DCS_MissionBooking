@@ -63,7 +63,7 @@ button{
     cursor: pointer;
     //transform: scale(1.05);
 }
-button::after{
+/*button::after{
     content: "\2713";
     position: absolute;
     top: 0;
@@ -130,7 +130,7 @@ button:focus{
 }
 #sideMenu a:hover{
    transform: scale(1.05);
-}
+}*/
 .loginContainer{
     position: fixed;
     top: 50%;

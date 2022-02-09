@@ -14,6 +14,8 @@ const argon2 = require("argon2");
 const bodyParser = require('body-parser');
 const res = require("express/lib/response");
 const cookieParser = require('cookie-parser');
+const { application } = require("express");
+const nocache = require('nocache');
 
 const enableServer = true;
 
@@ -35,6 +37,8 @@ function start() {
 
         //testDB(config)
 
+        app.use(nocache());
+        app.set('etag', false)
         app.use("/", bodyParser.json());
         app.use("/", bodyParser.urlencoded({ extended: true }));
         app.use(cookieParser());
@@ -46,7 +50,7 @@ function start() {
         app.use('/api/*', requireLogin);
 
         app.use('/admin*', (req, res, next) => {
-            if (checkAuthLevel(req))
+            if (isAdmin(req))
                 next();
             else res.redirect("/");
         })
@@ -55,7 +59,7 @@ function start() {
             express.static('admin')(req, res, next);
         });
         app.use('/api/admin*', function (req, res, next) {
-            if (checkAuthLevel(req))
+            if (isAdmin(req))
                 next();
             else res.sendStatus(403)
         })
@@ -94,10 +98,13 @@ function start() {
             //console.log(parm);
             mysqlConn((con) => {
                 //con.query("SELECT user_password FROM forums_users LIMIT 1", function (err, result, fields) {
-                con.query("SELECT user_id, username, user_email, user_password, group_name, rank_title FROM phpbb_users INNER JOIN phpbb_groups ON (phpbb_users.group_id = phpbb_groups.group_id) INNER JOIN phpbb_ranks ON (phpbb_users.user_rank = phpbb_ranks.rank_id) WHERE (username = '" + parm.Username + "' OR user_email = '" + parm.Username + "')", function (err, result, fields) {
+                //const query = "SELECT user_id, username, user_email, user_password, group_name, rank_title FROM " + config.forum.db_table_prefix + "users LEFT JOIN " + config.forum.db_table_prefix + "groups ON (" + config.forum.db_table_prefix + "users.group_id = " + config.forum.db_table_prefix + "groups.group_id) LEFT JOIN " + config.forum.db_table_prefix + "ranks ON (" + config.forum.db_table_prefix + "users.user_rank = " + config.forum.db_table_prefix + "ranks.rank_id) WHERE (username_clean = \"" + parm.Username.toLowerCase() + "\")";
+                const query = "SELECT user_id, username, user_email, user_password, group_name, rank_title FROM " + config.forum.db_table_prefix + "users LEFT JOIN " + config.forum.db_table_prefix + "groups ON (" + config.forum.db_table_prefix + "users.group_id = " + config.forum.db_table_prefix + "groups.group_id) LEFT JOIN " + config.forum.db_table_prefix + "ranks ON (" + config.forum.db_table_prefix + "users.user_rank = " + config.forum.db_table_prefix + "ranks.rank_id) WHERE (username_clean = \"" + parm.Username.toLowerCase() + "\" OR user_email = \"" + parm.Username + "\")";
+                //console.log(query);
+                con.query(query, function (err, result, fields) {
                     if (err) serverError(err);
-                    if (result) {
-                        //console.log("Result: ", result[0]);
+                    if (result[0]) {
+                        console.log("Result: ", result[0]);
                         verifyArgon2(result[0].user_password, parm.Password, (val) => {
                             if (val) {
                                 let userDt = result[0];
@@ -114,6 +121,7 @@ function start() {
                                                     if (err) res.sendStatus(500);
                                                     else {
                                                         res.cookie("stok", userDt.token)
+                                                        res.cookie("uid", userDt.user_id)
                                                         res.send({ status: "login_ok", userDt: userDt });
                                                     }
                                                 })
@@ -136,6 +144,7 @@ function start() {
         })
         app.use('/api/logout', (req, res, next) => {
             res.clearCookie("stok")
+            res.clearCookie("uid")
             res.send("logout_ok");
         })
         app.get('/api/getAllMissions', function (req, res, next) {
@@ -170,12 +179,12 @@ function start() {
             const parm = req.query;
 
             mongoConn((dbo) => {
-                console.log(req.query);
+                //console.log(req.query);
 
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + ".player";
                 let updateUserId = findStr + ".user_id";
-                console.log(update);
+                //console.log(update);
 
                 let playerName = req.userSession.username;
                 let userId = req.userSession.user_id;
@@ -184,7 +193,7 @@ function start() {
                     if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
-                        if (!slot.user_id || slot.user_id==-1) {
+                        if (!slot.user_id || slot.user_id == -1) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
@@ -205,12 +214,12 @@ function start() {
             const parm = req.query;
 
             mongoConn((dbo) => {
-                console.log(req.query);
+                //console.log(req.query);
 
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + ".player";
                 let updateUserId = findStr + ".user_id";
-                console.log(update);
+                //console.log(update);
 
                 let playerName = "";
                 let userId = req.userSession.user_id;
@@ -231,9 +240,48 @@ function start() {
                         }
                     }
                 })
-
-
             });
+        })
+
+        app.get("/api/getMenuUrls", (req, res, next) => {
+            let retUrls = [
+                {
+                    name: "Dashboard",
+                    url: "/",
+                    order: 0,
+                    type: "redirect"
+                }
+            ];
+            if (req.userSession) {
+                retUrls = retUrls.concat([
+                    {
+                        name: "Logout",
+                        url: "/api/logout",
+                        order: 10,
+                        type: "request"
+                    }
+                ])
+            } else {
+                retUrls = retUrls.concat([
+                    {
+                        name: "Login",
+                        url: "/api/login",
+                        order: 9,
+                        type: "request"
+                    }
+                ])
+            }
+            if (isAdmin(req)) {
+                retUrls = retUrls.concat([
+                    {
+                        name: "Publishment",
+                        url: "/admin",
+                        order: 1,
+                        type: "redirect"
+                    }
+                ])
+            }
+            res.send(retUrls);
         })
 
         function mongoConn(connCallback) {
@@ -283,7 +331,7 @@ function start() {
                     break;
 
                 default:
-                    console.log("REQ: " + path + "\nSESSION: ", req.userSession, "\nPARM: ", parm);
+                    console.log("\nREQ: " + path + "\nSESSION: ", req.userSession, "\nPARM: ", parm);
                     if (!req.userSession) res.send({ status: "login_required" });
                     else callback();
                     break;
@@ -310,8 +358,8 @@ function serverError(err) {
     console.log("[SERVER ERROR] ", err);
 }
 
-function checkAuthLevel(req) {
-    return req.userSession && req.userSession.group_name == "ADMINISTRATORS";
+function isAdmin(req) {
+    return (req.userSession && (req.userSession.rank_title == "Site Admin" || req.userSession.rank_title == "Site Admin")) || req.userSession.username == "JetDave";
 }
 
 function getAllMissionFiles(config) {
@@ -425,9 +473,11 @@ function testDB(config) {
     con.connect(function (err) {
         if (err) console.log("MySQL Test: ", err);
         console.log("Connected!");
-        con.query("SELECT user_password FROM phpbb_users LIMIT 10", function (err, result, fields) {
+        //con.query("SELECT username, user_password, user_email FROM " + config.forum.db_table_prefix + "users WHERE username = 'JetDave' LIMIT 10 ", function (err, result, fields) {
+        con.query("SELECT user_id, username, user_email, user_password, group_name, rank_title FROM forums_users LEFT JOIN forums_groups ON (forums_users.group_id = forums_groups.group_id AND forums_users.username) LEFT JOIN forums_ranks ON (forums_users.user_rank = forums_ranks.rank_id) WHERE username = 'Iggy' OR username = 'Webber'", function (err, result, fields) {
             if (err) console.log("MySQL Test: ", err);
             console.log("Result: ", result);
+            //fs.writeFileSync("users_Iggy_Webber.json", JSON.stringify(result, null, "\t"));
         });
     });
 }
@@ -447,6 +497,9 @@ function testMongoDB(config) {
         });
 
     });
+}
+function testMySQL(config){
+    mysqlConn.
 }
 */
 
@@ -477,6 +530,9 @@ function initConfigFile() {
         ],
         app_personalization: {
             name: "DCS Mission Booking"
+        },
+        forum: {
+            db_table_prefix: "phpbb_"
         },
         other: {
             force_https: false
