@@ -441,26 +441,26 @@ function getMissionFlightsFromString(missionFile) {
                                                     } if (o5Key == "units") {
                                                         if (!flightsReturn[side][fName]["units"]) flightsReturn[side][fName]["units"] = {};
                                                         let repeats = 0;
-                                                        for(let _rep = -1; _rep < repeats; _rep++){
+                                                        for (let _rep = -1; _rep < repeats; _rep++) {
                                                             for (let aircraft of o5.value.fields) {
                                                                 let slotN = aircraft.key.value;
-                                                                if(repeats > 0) slotN+= repeats;
+                                                                if (repeats > 0) slotN += repeats.toString();
                                                                 flightsReturn[side][fName]["units"][slotN] = {}
                                                                 for (let aInfo of aircraft.value.fields) {
                                                                     let aSubInfoKey = aInfo.key.raw.replace(/\"/g, '');
                                                                     let aSubInfoValue;
                                                                     try {
                                                                         aSubInfoValue = aInfo.value.raw.replace(/\"/g, '');
-                                                                    } catch (error) { 
+                                                                    } catch (error) {
                                                                         aSubInfoValue = aInfo.value;
                                                                     }
-                                                                    if (aSubInfoKey == "type"){
+                                                                    if (aSubInfoKey == "type") {
                                                                         flightsReturn[side][fName].aircraftType = aSubInfoValue;
-                                                                        if(aSubInfoValue.includes("F-14") && repeats == 0){
+                                                                        if (aSubInfoValue.includes("F-14") && repeats == 0) {
                                                                             repeats = 1;
                                                                         }
-                                                                    }else if (aSubInfoKey == "callsign") flightsReturn[side][fName].callsign = parseCallsign(aSubInfoValue.fields);
-    
+                                                                    } else if (aSubInfoKey == "callsign") flightsReturn[side][fName].callsign = parseCallsign(aSubInfoValue.fields);
+
                                                                     if (["type", "unitid", "name", "parking", "skill"].includes(aSubInfoKey)) {
                                                                         //console.log((slotN + ") " + aSubInfoKey + ": "), aSubInfoValue)
                                                                         if (aSubInfoKey == "callsign") {
@@ -490,13 +490,17 @@ function getMissionFlightsFromString(missionFile) {
     }
     return flightsReturn
 }
-function LUARealString(txt){
+function LUARealString(txt) {
     return txt.replace(/\"/g, '')
 }
-function parseCallsign(callsignLua){
-    let ret = {name: "", group: parseInt(LUARealString(callsignLua[1].value.raw)), pilot: parseInt(LUARealString(callsignLua[2].value.raw))}
-    if(callsignLua[3])
-        ret.name = LUARealString(callsignLua[3].value.raw).replace(ret.group.toString() + ret.pilot.toString(),"");
+function parseCallsign(callsignLua) {
+    let ret = {name: "", group: 1, pilot: 1};
+    console.log("callsign",callsignLua, ret);
+    if(callsignLua){
+        if (callsignLua[1]) ret.group = callsignLua[1].value.value;
+        if (callsignLua[2]) ret.pilot = callsignLua[2].value.value;
+        if (callsignLua[3]) ret.name = LUARealString(callsignLua[3].value.raw).replace(ret.group.toString() + ret.pilot.toString(), "");
+    }
     return ret;
 }
 function toUpperFirstChar(string) {

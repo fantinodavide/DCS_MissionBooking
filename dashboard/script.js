@@ -77,7 +77,9 @@ function createTable(parsedMiz, missionId, sideFilter) {
                         const [k, v] = entry;
                         let td = $("<td>" + v + "</td>");
                         let playerBooked = v.player && v.player != "";
-                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + k + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
+                        let aircraftN = k;
+                        if(aircraftN>10) aircraftN = parseInt(aircraftN/10);
+                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + aircraftN + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
                         tdElm[0].playerBooked = playerBooked;
                         let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
                         
