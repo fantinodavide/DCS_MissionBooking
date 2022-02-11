@@ -176,11 +176,11 @@ th:last-of-type {
 }
 
 .playerContainer.multicrew {
-    transform: scale(0.75);
+    transform: scale(0.80);
 }
 
 .playerContainer.multicrew:hover {
-    transform: scale(0.80);
+    transform: scale(0.83);
     
 }
 .playerContainer.booked {

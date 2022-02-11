@@ -1,3 +1,5 @@
+const versionN = 1.0;
+
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
 const LUA = require('luaparse');
@@ -16,6 +18,7 @@ const res = require("express/lib/response");
 const cookieParser = require('cookie-parser');
 const { application } = require("express");
 const nocache = require('nocache');
+const axios = require('axios');
 
 const enableServer = true;
 
@@ -36,6 +39,7 @@ function start() {
         }
 
         //testDB(config)
+        checkUpdates();
 
         app.use(nocache());
         app.set('etag', false)
@@ -358,10 +362,51 @@ function start() {
                 return next();
         }
 
+        function checkUpdates(downloadUpdate = false) {
+            let releasesUrl = "https://api.github.com/repos/fantinodavide/DCS_MissionBooking/releases";
+            axios
+                .get(releasesUrl)
+                .then(res => {
+                    const gitResData = res.data[0];
+                    /*mongoConn((dbo) => {
+                        dbo.collection("releases").findOne(res.data[0], (err, dbRes) => {
+                            if (!dbRes) {
+                            }
+                        })
+                    })*/
+                    const checkV = parseFloat(gitResData.tag_name.toUpperCase().replace("V", ""));
+                    if (versionN < checkV) {
+                        console.log("Update found: " + gitResData.tag_name, gitResData.name);
+                        //if (updateFoundCallback) updateFoundCallback();
+                        if (downloadUpdate) downloadLatestUpdate(gitResData);
+                    }
+                })
+        }
+
+        function downloadLatestUpdate(gitResData) {
+            const url = gitResData.zipball_url;
+            const path = Path.resolve(__dirname, 'tmp_update', 'gitupd.zip')
+            const writer = Fs.createWriteStream(path)
+            axios({
+                method: "get",
+                url: url,
+                responseType: "stream"
+            }).then(function (response) {
+                response.data.pipe(writer);
+            });
+
+            writer.on('finish', (res) => {
+                console.log(res);
+            })
+            writer.on('error', (err) => {
+                console.error(err);
+            })
+        }
 
     } else {
     }
 }
+
 
 function serverError(err) {
     res.sendStatus(500);
@@ -444,7 +489,7 @@ function getMissionFlightsFromString(missionFile) {
                                                             let repeats = 0;
                                                             for (let _rep = -1; _rep < repeats; _rep++) {
                                                                 let slotN = aircraft.key.value;
-                                                                let arrayIndex = length(flightsReturn[side][fName]["units"])+1//flightsReturn[side][fName]["units"].length;//aircraft.key.value * 1;
+                                                                let arrayIndex = length(flightsReturn[side][fName]["units"]) + 1//flightsReturn[side][fName]["units"].length;//aircraft.key.value * 1;
                                                                 if (!arrayIndex) arrayIndex = 1;
                                                                 if (repeats > 0) {
                                                                     //arrayIndex += slotN + (_rep + 2);
@@ -453,7 +498,7 @@ function getMissionFlightsFromString(missionFile) {
                                                                 }
                                                                 flightsReturn[side][fName]["units"][arrayIndex] = {}
                                                                 flightsReturn[side][fName]["units"][arrayIndex].slotN = slotN;
-                                                                flightsReturn[side][fName]["units"][arrayIndex].multicrew = repeats>0;
+                                                                flightsReturn[side][fName]["units"][arrayIndex].multicrew = repeats > 0;
                                                                 for (let aInfo of aircraft.value.fields) {
                                                                     let aSubInfoKey = aInfo.key.raw.replace(/\"/g, '');
                                                                     let aSubInfoValue;
@@ -464,7 +509,7 @@ function getMissionFlightsFromString(missionFile) {
                                                                     }
                                                                     if (aSubInfoKey == "type") {
                                                                         flightsReturn[side][fName].aircraftType = aSubInfoValue;
-                                                                        if(repeats == 0){
+                                                                        if (repeats == 0) {
                                                                             if (aSubInfoValue.includes("F-14")) {
                                                                                 repeats = 1;
                                                                             }
@@ -539,14 +584,14 @@ function testMongoDB(config) {
     let client = MongoClient.connect(url, function (err, db) {
         if (err) res.sendStatus(500);
         var dbo = db.db(dbName);
-
+ 
         dbo.collection("missions").find({}).toArray(function (err, result) {
             if (err) res.sendStatus(500);
             console.log(result);
             //let res = await dbo.collection("test").insertOne({})
             db.close();
         });
-
+ 
     });
 }
 function testMySQL(config){
