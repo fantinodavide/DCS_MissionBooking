@@ -42,7 +42,7 @@ function start() {
         setInterval(()=>{
             checkUpdates(true);
 
-        },10000)
+        },config.other.update_check_interval_seconds*1000)
 
         app.use(nocache());
         app.set('etag', false)
