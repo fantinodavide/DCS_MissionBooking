@@ -40,7 +40,7 @@ function start() {
 
         //testDB(config)
         setInterval(()=>{
-            checkUpdates();
+            checkUpdates(true);
 
         },10000)
 
@@ -382,8 +382,9 @@ function start() {
                             }
                         })
                     })*/
-                    const checkV = parseFloat(gitResData.tag_name.toUpperCase().replace("V", ""));
-                    if (versionN < checkV) {
+                    const checkV = gitResData.tag_name.toUpperCase().replace("V", "").split(".");
+                    const versionSplit = versionN.toString().split(".");
+                    if (parseInt(versionSplit[0]) < parseInt(checkV[0]) || parseInt(versionSplit[1]) < parseInt(checkV[1])) {
                         console.log("Update found: " + gitResData.tag_name, gitResData.name);
                         //if (updateFoundCallback) updateFoundCallback();
                         if (downloadInstallUpdate) downloadLatestUpdate(gitResData);
