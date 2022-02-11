@@ -34,7 +34,7 @@ function start() {
                 var host = server.address().address
                 var port = server.address().port
 
-                console.log("\nWebserver istening at http://%s:%s", host, port)
+                console.log("\nWebserver listening at http://%s:%s", host, port)
             })
         }
 
@@ -389,6 +389,9 @@ function start() {
                         //if (updateFoundCallback) updateFoundCallback();
                         if (downloadInstallUpdate) downloadLatestUpdate(gitResData);
                     }
+                })
+                .catch(err =>{
+                    console.error("Couldn't check for updates");
                 })
         }
 
