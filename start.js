@@ -416,10 +416,10 @@ function start() {
             zip.on('ready', () => {
                 const gitZipDir = Object.values(zip.entries())[0].name;
                 console.log(gitZipDir);
-                zip.extract(gitZipDir, __dirname, (err, res) => {
+                zip.extract(gitZipDir, __d, (err, res) => {
                     console.log(" > Extracted", res, "files");
-                    const currentPath = path.resolve(dwnDir, gitZipDir);
                     /*const destinationPath = path.resolve(__dirname, "test");
+                    const currentPath = path.resolve(dwnDir, gitZipDir);
 
                     fs.rename(currentPath, destinationPath, function (err) {
                         if (err) {
