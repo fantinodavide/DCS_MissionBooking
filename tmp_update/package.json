@@ -1,0 +1,35 @@
+{
+  "dependencies": {
+    "argon2": "^0.28.3",
+    "cookie-parser": "^1.4.6",
+    "crypto": "^1.0.1",
+    "express": "^4.17.2",
+    "fs": "^0.0.1-security",
+    "luaparse": "^0.3.1",
+    "mongodb": "^4.3.1",
+    "mysql": "^2.18.1",
+    "nocache": "^3.0.1",
+    "node-pre-gyp": "^0.17.0",
+    "node-stream-zip": "^1.15.0",
+    "npmcli": "^1.2.2",
+    "path": "^0.12.7",
+    "readline": "^1.3.0"
+  },
+  "name": "dcs_booking_miz",
+  "version": "1.0.0",
+  "main": "start.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fantinodavide/DCS_MissionBooking.git"
+  },
+  "author": "Fantino Davide",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fantinodavide/DCS_MissionBooking/issues"
+  },
+  "homepage": "https://github.com/fantinodavide/DCS_MissionBooking#readme",
+  "description": ""
+}

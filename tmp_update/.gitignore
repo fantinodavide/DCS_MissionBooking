@@ -4,6 +4,5 @@ conf.json
 **/*.bak
 **/*.url
 ignored/
-tmp_update/
 
 !missions/example.miz

@@ -1,0 +1,431 @@
+:root {
+    --bgColor: #242424;
+    --bgColor2: #333;
+    --bgColor3: #3a3a3a;
+    --bgColor4: #1c1c1c;
+    --txtColor: #fff;
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    font-family: arial;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 100ms ease-in-out;
+
+}
+
+body {
+    background: var(--bgColor);
+    padding-top: 50px;
+}
+
+select {
+    //position: relative;
+    background-color: var(--bgColor2);
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px 0 #0003;
+    margin: 10px 0;
+    //width: 100%;
+}
+
+select:hover {
+    background-color: var(--bgColor3);
+}
+
+.mainContainer {
+    position: relative;
+    margin: auto;
+    margin-bottom: 10px;
+    //width: 100%;
+    max-width: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 0px 10px;
+    flex-direction: column;
+}
+
+.mainContainer * {
+    color: var(--txtColor);
+}
+
+/*table{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+tr{
+    display: flex;
+    flex-direction: row;
+    align-content: stretch;
+}*/
+td[rowspan]:first-of-type {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+
+}
+
+table {
+    //font-size: 14px;
+}
+
+table,
+th,
+td {
+    border: none;
+}
+
+th,
+td {
+    position: relative;
+    border: none;
+    padding: 5px 10px;
+    border: 0px solid #000;
+    background-color: var(--bgColor2);
+    overflow: hidden;
+}
+
+tr {
+    border: 10px solid var(--bgColor);
+}
+
+tr:first-of-type {
+    border-radius: 50px;
+    border: none;
+    overflow: hidden;
+}
+
+tr.rowSpacer {
+    height: 5px;
+}
+
+td {
+    //border-radius: 5px;
+
+}
+
+th {
+    //border-radius: 10px;
+    margin: 10px;
+    padding: 10px;
+    background: var(--bgColor3)
+}
+
+th:first-of-type {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+th:last-of-type {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.inFlightNumber {
+    position: relative;
+    //padding: 5px;
+    background: #888;
+    color: #000;
+    width: 28px;
+    height: 28px;
+    border-radius: 50px;
+    margin: 0px;
+    display: inline-block;
+    text-align: center;
+    line-height: 28px;
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+.playerContainer.booked .inFlightNumber {
+    background: #eee;
+}
+
+/*tr:hover{
+    background-color: var(--bgColor2);
+}*/
+#tableContainer {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    margin: 0 10px;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.playerContainer {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    width: 30%;
+    //cursor: pointer;
+    transform: scale(0.85);
+    transform-origin: left;
+    white-space: nowrap;
+    text-overflow: clip;
+    overflow: hidden;
+}
+
+.playerContainer:hover {
+    transform: scale(0.90);
+    
+}
+
+.playerContainer.multicrew {
+    transform: scale(0.75);
+}
+
+.playerContainer.multicrew:hover {
+    transform: scale(0.80);
+    
+}
+.playerContainer.booked {
+    transform: scale(1);
+    //cursor: default;
+    
+}
+.playerContainer.multicrew.booked {
+    transform: scale(0.95);
+}
+
+.playerContainer.blue {
+    border-left: solid 5px #45c;
+}
+
+.playerContainer.red {
+    border-left: solid 5px #c55;
+}
+
+.playerNameContainer {
+    color: #eee0;
+}
+
+.playerContainer.booked .playerNameContainer {
+    color: #eee;
+}
+
+.flightContainer {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    /*width: calc(100% - 20px);
+    height: calc(100% - 20px);*/
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0;
+    padding: 0px;
+    justify-content: center;
+}
+
+.flightContainer .aircraftType,
+.flightContainer .task {
+    /*
+    top: 0px;
+    left: 50%;
+    transform: translateX(-50%);*/
+    position: relative;
+    height: 25px;
+    min-height: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: center;
+    width: 70%;
+    background: #b8b8b8;
+    color: #000;
+    padding: 0 10px;
+    text-align: center;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    box-shadow: 0 2px 10px 0 #0006;
+}
+
+.flightContainer .groupName {
+    display: inline-block;
+    flex-grow: 999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 5px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow: auto;
+}
+
+.horizontalScrolling {
+    display: inline-block;
+    flex-grow: 999;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    //margin: 5px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow: auto;
+}
+
+td {
+    min-width: 20px;
+}
+
+.flightTD {
+    min-width: 100px;
+}
+
+.colId.task {
+    width: 1%;
+    min-width: 50px;
+}
+
+.colId.task.Nothing {
+    color: #666;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background: var(--bgColor4);
+    box-shadow: 0 2px 10px 0 #0008;
+    color: #eee;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    font-size: 14px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+    font-weight: normal;
+
+}
+
+#menu {
+    position: fixed;
+    top: 50px;
+    left: -250px;
+    width: 250px;
+    height: calc(100% - 50px);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    background: var(--bgColor4);
+    box-shadow: 2px 0px 10px 0 #0008;
+    transition: all 200ms ease-in-out;
+}
+
+#menu a {
+    text-decoration: none;
+    font-style: normal;
+    color: var(--txtColor1);
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 10px;
+    //margin-bottom: 0px;
+    background: var(--bgColor2);
+}
+
+#menu a:hover {
+    background: var(--bgColor3);
+}
+
+#menu.show {
+    left: 0px;
+}
+
+#menuToggleContainer {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    left: 10px;
+    cursor: pointer;
+}
+
+#toggleMenu,
+#toggleMenu::before,
+#toggleMenu::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: calc(50% - 1.5px);
+    width: 30px;
+    height: 2px;
+    background: #fff;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 10px;
+    z-index: 100;
+    display: block;
+    transform-origin: center;
+    transition: all 300ms ease-in-out, background 150ms ease-in-out;
+}
+
+/*#toggleMenu::before, #toggleMenu::after{
+    position: absolute;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: #fff;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 10px;
+}*/
+#toggleMenu::before {
+    top: -8px;
+}
+
+#toggleMenu::after {
+    top: 8px;
+}
+
+#menuToggleContainer.show #toggleMenu {
+    background: #0000;
+}
+
+#menuToggleContainer.show #toggleMenu::after,
+#menuToggleContainer.show #toggleMenu::before {
+    top: 0;
+}
+
+#menuToggleContainer.show #toggleMenu::after {
+    transform: rotate(135deg);
+    opacity: 1;
+}
+
+#menuToggleContainer.show #toggleMenu::before {
+    transform: rotate(225deg);
+    opacity: 1;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-internal-autofill-selected,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+    border: none !important;
+    -webkit-text-fill-color: var(--txtColor) !important;
+    -webkit-box-shadow: 0 0 0px 1000px var(--bgColor1) inset !important;
+}
