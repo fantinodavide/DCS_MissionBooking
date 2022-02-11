@@ -1,8 +1,0 @@
-node_modules/
-**/*.miz
-conf.json
-**/*.bak
-**/*.url
-ignored/
-
-!missions/example.miz
