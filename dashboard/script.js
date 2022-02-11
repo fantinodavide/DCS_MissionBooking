@@ -14,8 +14,8 @@ $(document).ready(() => {
                 $("#tableContainer").find("table").remove();
                 createTable(jsonData.parsedMiz, jsonData._id, "blue/red")
                 //createTable(jsonData.parsedMiz.red, "red")
-                
-                
+
+
             });
         })
         $("#missionSelection option:eq(1)").prop('selected', true)
@@ -23,27 +23,27 @@ $(document).ready(() => {
     })
 })
 
-function login(){
-    inputPopup("Login",[["Username","Password"],["text","password"]], (json, getPointerCampo, close)=>{
+function login() {
+    inputPopup("Login", [["Username", "Password"], ["text", "password"]], (json, getPointerCampo, close) => {
         send_request("/api/login", "POST", JSON.parse(json), (data) => {
             const jsonData = JSON.parse(data);
             console.log(jsonData);
-            switch(jsonData.status){
+            switch (jsonData.status) {
                 case 'login_ok':
                     console.log(jsonData.userDt);
-                    localStorage.setItem("stok",jsonData.userDt.token);
-                    localStorage.setItem("username",jsonData.userDt.username);
-                    localStorage.setItem("uid",jsonData.userDt.id)
+                    localStorage.setItem("stok", jsonData.userDt.token);
+                    localStorage.setItem("username", jsonData.userDt.username);
+                    localStorage.setItem("uid", jsonData.userDt.id)
                     close();
                     location.reload();
                     break;
                 case 'wrong_credentials':
-                    getPointerCampo("Username").css("background-color","#f77");
-                    getPointerCampo("Password").css("background-color","#f77");
+                    getPointerCampo("Username").css("background-color", "#f77");
+                    getPointerCampo("Password").css("background-color", "#f77");
                     break;
             }
         });
-    },"Login",false);
+    }, "Login", false);
 }
 
 function createTable(parsedMiz, missionId, sideFilter) {
@@ -57,11 +57,11 @@ function createTable(parsedMiz, missionId, sideFilter) {
             Object.entries(v).forEach(entry => {
                 const [k, v] = entry;
                 const showAI = false;
-                if (v.units[1].skill == "Client" || showAI) {
+                if ((v.skill == "Client" || v.units[Object.keys(v.units)[0]].skill == "Client") || showAI) {
                     table.append("<tr class='rowSpacer'></tr>");
                     const unitsCount = count(v.units);
                     let flightName = k;
-                    let row = $("<tr><td class='flightTD' rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.aircraftType + "</span><span class='groupName'>" + (v.callsign&&v.callsign.name?(v.callsign.name)+"-"+v.callsign.group:k) + "</span></div></td></tr>");
+                    let row = $("<tr><td class='flightTD' rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.aircraftType + "</span><span class='groupName'>" + (v.callsign && v.callsign.name ? (v.callsign.name) + "-" + v.callsign.group : k) + "</span></div></td></tr>");
                     table.append(row);
                     Object.entries(v).forEach(entry => {
                         const [k, v] = entry;
@@ -73,65 +73,71 @@ function createTable(parsedMiz, missionId, sideFilter) {
                         }
                     });
 
+                    /*
+                    let sUnits = v.units.sort((a, b) => { return a.slotN - b.slotN; })
+                    console.log(sUnits);
+                    */
                     Object.entries(v.units).forEach(entry => {
                         const [k, v] = entry;
+
                         let td = $("<td>" + v + "</td>");
                         let playerBooked = v.player && v.player != "";
-                        let aircraftN = k;
-                        if(aircraftN>10) aircraftN = parseInt(aircraftN/10);
+                        let aircraftN = v.slotN ? v.slotN : k;
+                        if (aircraftN > 10) aircraftN = (aircraftN / 10);
                         let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + aircraftN + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
+                        if (v.multicrew) tdElm.addClass("multicrew");
                         tdElm[0].playerBooked = playerBooked;
                         let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
-                        
-                        if(!v.user_id || v.user_id==-1 || v.user_id == parseInt(getCookie("uid"))){
-                            tdElm.css("cursor","pointer")
-                            tdElm.click(()=>{
-                                if (!tdElm[0].playerBooked){
+
+                        if (!v.user_id || v.user_id == -1 || v.user_id == parseInt(getCookie("uid"))) {
+                            tdElm.css("cursor", "pointer")
+                            tdElm.click(() => {
+                                if (!tdElm[0].playerBooked) {
                                     _bookMission();
-                                }else{    
+                                } else {
                                     _dismissMission();
                                 }
                             })
-                            if(v.user_id == parseInt(getCookie("uid"))){
+                            if (v.user_id == parseInt(getCookie("uid"))) {
                                 myBookedMissions.push(tdElm);
 
                             }
                         }
 
-                        function _bookMission(){
+                        function _bookMission() {
                             /*console.log("[EVT SET] Book mission");
                             tdElm.click(() => {*/
-                                for(let t of myBookedMissions){
-                                    if(t!=null)
-                                        t.trigger("click");
-                                }
-                                myBookedMissions = [];
-                                console.log("Booking mission");
-                                send_request("/api/bookMission", "GET", par, (data) => {
-                                    const jsonData = JSON.parse(data);
-                                    tdElm.addClass("booked");
-                                    tdElm.find(".playerNameContainer").html(jsonData.playerName);
-                                    tdElm[0].playerBooked = true;
-                                    myBookedMissions.push(tdElm)
-                                })
+                            for (let t of myBookedMissions) {
+                                if (t != null)
+                                    t.trigger("click");
+                            }
+                            myBookedMissions = [];
+                            console.log("Booking mission", par);
+                            send_request("/api/bookMission", "GET", par, (data) => {
+                                const jsonData = JSON.parse(data);
+                                tdElm.addClass("booked");
+                                tdElm.find(".playerNameContainer").html(jsonData.playerName);
+                                tdElm[0].playerBooked = true;
+                                myBookedMissions.push(tdElm)
+                            })
                             //})
                         }
-                        function _dismissMission(){
+                        function _dismissMission() {
                             /*console.log("[EVT SET] Dismiss mission");
                             tdElm.click(() => {*/
-                                myBookedMissions[myBookedMissions.indexOf(tdElm)]=null;
-                                console.log("Dissmissing mission");
-                                send_request("/api/dismissMission", "GET", par, (data) => {
-                                    const jsonData = JSON.parse(data);
-                                    //console.log(jsonData);
-                                    if(jsonData.removed == "ok"){
-                                        tdElm.removeClass("booked");
-                                        tdElm[0].playerBooked = false;
-                                        setTimeout(()=>{
-                                            tdElm.find(".playerNameContainer").html("");
-                                        },100)
-                                    }
-                                })
+                            myBookedMissions[myBookedMissions.indexOf(tdElm)] = null;
+                            console.log("Dissmissing mission");
+                            send_request("/api/dismissMission", "GET", par, (data) => {
+                                const jsonData = JSON.parse(data);
+                                //console.log(jsonData);
+                                if (jsonData.removed == "ok") {
+                                    tdElm.removeClass("booked");
+                                    tdElm[0].playerBooked = false;
+                                    setTimeout(() => {
+                                        tdElm.find(".playerNameContainer").html("");
+                                    }, 100)
+                                }
+                            })
                             //})
                         }
                         if (k == 1)

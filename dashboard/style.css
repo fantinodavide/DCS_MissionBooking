@@ -128,17 +128,18 @@ th:last-of-type {
 
 .inFlightNumber {
     position: relative;
-    padding: 3px;
+    //padding: 5px;
     background: #888;
     color: #000;
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     border-radius: 50px;
     margin: 0px;
     display: inline-block;
     text-align: center;
-    line-height: 20px;
+    line-height: 28px;
     margin-right: 10px;
+    font-size: 16px;
 }
 
 .playerContainer.booked .inFlightNumber {
@@ -171,13 +172,24 @@ th:last-of-type {
 
 .playerContainer:hover {
     transform: scale(0.90);
-
+    
 }
 
+.playerContainer.multicrew {
+    transform: scale(0.75);
+}
+
+.playerContainer.multicrew:hover {
+    transform: scale(0.80);
+    
+}
 .playerContainer.booked {
     transform: scale(1);
     //cursor: default;
-
+    
+}
+.playerContainer.multicrew.booked {
+    transform: scale(0.95);
 }
 
 .playerContainer.blue {
