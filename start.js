@@ -423,10 +423,7 @@ function start() {
                 console.log(gitZipDir);
                 zip.extract(gitZipDir, __dirname, (err, res) => {
                     console.log(" > Extracted", res, "files");
-                    fs.rmdir(dwnDir, { recursive: true }, (err) => {
-                        if (err) throw err;
-                        console.log(`${dwnDir} folder deleted`);
-                    });
+                    if(fs.rmSync(dwnDir, { recursive: true })) console.log(`${dwnDir} folder deleted`);
                     //console.log(" > Deleting temporary folder");
                     console.log(" > Restart in 5 seconds");
                     setTimeout(() => {
