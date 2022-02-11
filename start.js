@@ -39,7 +39,10 @@ function start() {
         }
 
         //testDB(config)
-        checkUpdates();
+        setInterval(()=>{
+            checkUpdates();
+
+        },10000)
 
         app.use(nocache());
         app.set('etag', false)
@@ -108,7 +111,7 @@ function start() {
             });
         })
         app.get("/api/admin/checkInstallUpdate", (req, res, next) => {
-            //res.send({ status: "Ok" });
+            res.send({ status: "Ok" });
             checkUpdates(true);
 
         })
