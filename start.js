@@ -423,15 +423,23 @@ function start() {
                 console.log(gitZipDir);
                 zip.extract(gitZipDir, __dirname, (err, res) => {
                     console.log(" > Extracted", res, "files");
-                    console.log("This is pid " + process.pid);
-                    process.on("exit", function () {
-                        require("child_process").spawn(process.argv.shift(), process.argv, {
-                            cwd: process.cwd(),
-                            detached: true,
-                            stdio: "inherit"
-                        });
+                    fs.rmdir(dwnDir, { recursive: true }, (err) => {
+                        if (err) throw err;
+                        console.log(`${dwnDir} folder deleted`);
                     });
-                    process.exit();
+                    //console.log(" > Deleting temporary folder");
+                    console.log(" > Restart in 5 seconds");
+                    setTimeout(() => {
+                        //console.log("This is pid " + process.pid);
+                        process.on("exit", function () {
+                            require("child_process").spawn(process.argv.shift(), process.argv, {
+                                cwd: process.cwd(),
+                                detached: true,
+                                stdio: "inherit"
+                            });
+                        });
+                        process.exit();
+                    }, 5000)
                     /*const destinationPath = path.resolve(__dirname, "test");
                     const currentPath = path.resolve(dwnDir, gitZipDir);
 
