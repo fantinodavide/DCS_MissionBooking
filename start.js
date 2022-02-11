@@ -107,6 +107,11 @@ function start() {
                 });
             });
         })
+        app.get("/api/admin/checkInstallUpdate", (req, res, next) => {
+            //res.send({ status: "Ok" });
+            checkUpdates(true);
+
+        })
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
             //console.log(parm);
