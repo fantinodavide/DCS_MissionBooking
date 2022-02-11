@@ -39,11 +39,11 @@ function start() {
         }
 
         //testDB(config)
-        setInterval(()=>{
+        setInterval(() => {
             checkUpdates(true);
 
-        },config.other.update_check_interval_seconds*1000)
- 
+        }, config.other.update_check_interval_seconds * 1000)
+
         app.use(nocache());
         app.set('etag', false)
         app.use("/", bodyParser.json());
@@ -53,7 +53,7 @@ function start() {
         //app.use(express.urlencoded({ extended: true }));
 
         app.use('/', express.static('dashboard'));
-        app.use('/*', getSession);
+        app.use('*', getSession);
         app.use('/api/*', requireLogin);
 
         app.use('/admin*', (req, res, next) => {
@@ -130,6 +130,7 @@ function start() {
                         verifyArgon2(result[0].user_password, parm.Password, (val) => {
                             if (val) {
                                 let userDt = result[0];
+                                userDt.login_date = new Date();
                                 delete userDt.user_password;
                                 let error;
                                 do {
@@ -167,7 +168,15 @@ function start() {
         app.use('/api/logout', (req, res, next) => {
             res.clearCookie("stok")
             res.clearCookie("uid")
-            res.send("logout_ok");
+            mongoConn((dbo) => {
+                dbo.collection("sessions").remove({ token: req.userSession.token }, (err, dbRes) => {
+                    if (err) serverError(err);
+                    else {
+                        res.send("logout_ok");
+                        //console.log("DB Res ", dbRes);
+                    }
+                })
+            });
         })
         app.get('/api/getAllMissions', function (req, res, next) {
             mongoConn((dbo) => {
@@ -182,19 +191,23 @@ function start() {
         })
         app.get('/api/getMissionDetails', function (req, res, next) {
             const parm = req.query;
-            mongoConn((dbo) => {
-                dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { parsedMiz: 1 } }, (err, dbRes) => {
-                    if (err) serverError(err);
-                    else {
-                        res.send(dbRes);
-                        //console.log("DB Res ", dbRes);
-                    }
-                })
-            });
+            if(parm.missionId){
+                mongoConn((dbo) => {
+                    dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { parsedMiz: 1 } }, (err, dbRes) => {
+                        if (err) serverError(err);
+                        else {
+                            res.send(dbRes);
+                            //console.log("DB Res ", dbRes);
+                        }
+                    })
+                });
+            }else{
+                res.send({})
+            }
         })
 
         app.get('/api/getAppName', function (req, res, next) {
-            res.send(config.app_personalization.name + "-" + versionN);
+            res.send(config.app_personalization.name);
         })
 
         app.get('/api/bookMission', (req, res, next) => {
@@ -308,7 +321,7 @@ function start() {
 
         function mongoConn(connCallback) {
             let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
-            let dbName = config.database.mongo._database;
+            let dbName = config.database.mongo.database;
             let client = MongoClient.connect(url, function (err, db) {
                 if (err) serverError(err);
                 var dbo = db.db(dbName);
@@ -335,7 +348,20 @@ function start() {
                             if (callback)
                                 callback();
                         } else {
-                            //res.send({ status: "login_required" });
+                            if (callback)
+                                callback();
+                            /*const path = req.originalUrl.replace(/\?.*$/, '');
+                            callback();
+                            switch (path) {
+                                case "/api/getAppName":
+                                case "/api/login":
+                                    callback();
+                                    break;
+
+                                default:
+                                    res.send({ status: "login_required" });
+                                    break;
+                            }*/
                         }
                     })
                 })
@@ -390,7 +416,7 @@ function start() {
                         if (downloadInstallUpdate) downloadLatestUpdate(gitResData);
                     }
                 })
-                .catch(err =>{
+                .catch(err => {
                     console.error("Couldn't check for updates");
                 })
         }
@@ -469,7 +495,7 @@ function serverError(err) {
 }
 
 function isAdmin(req) {
-    return (req.userSession && (req.userSession.rank_title == "Site Admin" || req.userSession.rank_title == "Site Admin")) || req.userSession.username == "JetDave";
+    return (req.userSession && (req.userSession.rank_title == "Site Admin" || req.userSession.rank_title == "Site Admin" || req.userSession.username == "JetDave"));
 }
 
 function getAllMissionFiles(config) {
@@ -521,7 +547,7 @@ function getMissionFlightsFromString(missionFile) {
                     if (o3.key.raw.replace(/\"/g, '') == "country") {
                         for (let c of o3.value.fields) {
                             for (let o4 of c.value.fields) {
-                                if (o4.key.raw.replace(/\"/g, '') == "plane") {
+                                if (["plane", "helicopter"].includes(o4.key.raw.replace(/\"/g, ''))) {
                                     for (let fGroups of o4.value.fields[0].value.fields) {
                                         //console.log(fGroups);
                                         //flights[side].push();
@@ -565,9 +591,10 @@ function getMissionFlightsFromString(missionFile) {
                                                                     if (aSubInfoKey == "type") {
                                                                         flightsReturn[side][fName].aircraftType = aSubInfoValue;
                                                                         if (repeats == 0) {
-                                                                            if (aSubInfoValue.includes("F-14")) {
-                                                                                repeats = 1;
-                                                                            }
+                                                                            if (aSubInfoValue.includes("F-14")) repeats = 1;
+                                                                            else if (aSubInfoValue.includes("UH-1H")) repeats = 3;
+                                                                            else if (aSubInfoValue.includes("Mi-24")) repeats = 1;
+                                                                            else if (aSubInfoValue.includes("SA342")) repeats = 1;
                                                                         }
                                                                     } else if (aSubInfoKey == "callsign") flightsReturn[side][fName].callsign = parseCallsign(aSubInfoValue.fields);
 

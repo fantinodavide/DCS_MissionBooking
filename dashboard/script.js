@@ -86,6 +86,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                         if (aircraftN > 10) aircraftN = (aircraftN / 10);
                         let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + aircraftN + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
                         if (v.multicrew) tdElm.addClass("multicrew");
+                        if (unitsCount == 1) tdElm.addClass("singleSlot");
                         tdElm[0].playerBooked = playerBooked;
                         let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
 
