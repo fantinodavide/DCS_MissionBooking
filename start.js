@@ -191,7 +191,7 @@ function start() {
         })
 
         app.get('/api/getAppName', function (req, res, next) {
-            res.send(config.app_personalization.name);
+            res.send(config.app_personalization.name + "-" + versionN);
         })
 
         app.get('/api/bookMission', (req, res, next) => {
@@ -423,18 +423,18 @@ function start() {
                 console.log(gitZipDir);
                 zip.extract(gitZipDir, __dirname, (err, res) => {
                     console.log(" > Extracted", res, "files");
-                    if(fs.rmSync(dwnDir, { recursive: true })) console.log(`${dwnDir} folder deleted`);
+                    if (fs.rmSync(dwnDir, { recursive: true })) console.log(`${dwnDir} folder deleted`);
                     //console.log(" > Deleting temporary folder");
                     console.log(" > Restart in 5 seconds");
-                    setTimeout(() => {
-                        //console.log("This is pid " + process.pid);
-                        process.on("exit", function () {
-                            require("child_process").spawn(process.argv.shift(), process.argv, {
-                                cwd: process.cwd(),
-                                detached: true,
-                                stdio: "inherit"
-                            });
+                    process.on("exit", function () {
+                        console.log("Process terminated");
+                        require("child_process").spawn(process.argv.shift(), process.argv, {
+                            cwd: process.cwd(),
+                            detached: true,
+                            stdio: "inherit"
                         });
+                    });
+                    setTimeout(() => {
                         process.exit();
                     }, 5000)
                     /*const destinationPath = path.resolve(__dirname, "test");
