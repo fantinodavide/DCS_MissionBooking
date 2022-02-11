@@ -104,13 +104,7 @@ tr.rowSpacer {
     height: 5px;
 }
 
-td {
-    //border-radius: 5px;
-
-}
-
 th {
-    //border-radius: 10px;
     margin: 10px;
     padding: 10px;
     background: var(--bgColor3)
@@ -198,6 +192,10 @@ th:last-of-type {
 
 .playerContainer.red {
     border-left: solid 5px #c55;
+}
+.playerContainer.singleSlot{
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 
 .playerNameContainer {
