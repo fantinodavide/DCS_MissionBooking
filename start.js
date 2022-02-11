@@ -683,7 +683,8 @@ function initConfigFile() {
             db_table_prefix: "phpbb_"
         },
         other: {
-            force_https: false
+            force_https: false,
+            update_check_interval_seconds: 3600
         }
     }
     var rl = readline.createInterface({
