@@ -1,4 +1,4 @@
-const versionN = 0.9;
+const versionN = 1.1;
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -423,6 +423,15 @@ function start() {
                 console.log(gitZipDir);
                 zip.extract(gitZipDir, __dirname, (err, res) => {
                     console.log(" > Extracted", res, "files");
+                    console.log("This is pid " + process.pid);
+                    process.on("exit", function () {
+                        require("child_process").spawn(process.argv.shift(), process.argv, {
+                            cwd: process.cwd(),
+                            detached: true,
+                            stdio: "inherit"
+                        });
+                    });
+                    process.exit();
                     /*const destinationPath = path.resolve(__dirname, "test");
                     const currentPath = path.resolve(dwnDir, gitZipDir);
 
