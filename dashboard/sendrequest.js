@@ -1,4 +1,4 @@
-function send_request(url, method, parameters, callback) {
+function send_request(url, method, parameters, callback, forcecallback = false) {
 	//alert(JSON.stringify(parameters) + " - Method: " + method);
 	let sendDt = parameters != null ? parameters : {};
 	//sendDt.stok = localStorage.getItem("stok");
@@ -22,6 +22,7 @@ function send_request(url, method, parameters, callback) {
 			console.log(url, jsonData);
 			switch (jsonData.status) {
 				case "login_required":
+					if (forcecallback) callback(data);
 					login()
 					break;
 

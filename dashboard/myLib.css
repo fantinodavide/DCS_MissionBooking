@@ -10,12 +10,13 @@
     --txtColor2: #000;
     --bgColor2: #fff;
     */
-    --color1: #f60;
+    --color1: var(--accentColor);
     --color2: var(--color1);
     --txtColor1: #eee;
     --bgColor1: #242424;
     --txtColor2: #var(--txtColor1);
     --bgColor2: #333;
+    --accentColor: #f60;
 }
 
 *{
