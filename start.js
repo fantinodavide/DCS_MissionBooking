@@ -1,4 +1,4 @@
-const versionN = 1.3;
+const versionN = 1.4;
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -29,6 +29,8 @@ function start() {
         const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
         console.log(config);
 
+        checkUpdates(config.other.automatic_updates);
+
         if (enableServer) {
             var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
                 var host = server.address().address
@@ -36,13 +38,6 @@ function start() {
 
                 console.log("\nWebserver listening at http://%s:%s", host, port)
             })
-        }
-
-        //testDB(config)
-        if (config.other.automatic_updates) {
-            setInterval(() => {
-                if (config.other.automatic_updates) checkUpdates(true);
-            }, config.other.update_check_interval_seconds * 1000)
         }
 
         app.use(nocache());
@@ -375,6 +370,7 @@ function start() {
             const path = req.originalUrl.replace(/\?.*$/, '');
             switch (path) {
                 case "/api/getAppName":
+                case "/api/getAppPersonalization":
                 case "/api/login":
                     callback();
                     break;
@@ -720,7 +716,8 @@ function initConfigFile() {
         ],
         app_personalization: {
             name: "DCS Mission Booking",
-            favicon: ""
+            favicon: "",
+            accentColor: "#f60"
         },
         forum: {
             db_table_prefix: "phpbb_"

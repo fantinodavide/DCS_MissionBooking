@@ -6,54 +6,62 @@ $(document).ready(() => {
         }
     })
     send_request("/api/getMenuUrls", "GET", {}, (data) => {
-        const jsonData = JSON.parse(data).sort((a, b) => { return a.order - b.order });
-        //console.log(jsonData);
-        for (let u of jsonData) {
-            let a = $("<a></a>");
-            if (u.type == "redirect")
-                a.attr("href", u.url);
-            else {
-                console.log("request");
-                switch (u.url) {
-                    case "/api/logout":
-                        a.on("click", logout)
-                        break;
+        const jsonData = JSON.parse(data);
+        console.log(jsonData);
+        if (jsonData.status == "login_required") {
+            $("#menuToggleContainer").remove();
+        } else {
+            for (let u of jsonData.sort((a, b) => { return a.order - b.order })) {
+                let a = $("<a></a>");
+                if (u.type == "redirect")
+                    a.attr("href", u.url);
+                else {
+                    console.log("request");
+                    switch (u.url) {
+                        case "/api/logout":
+                            a.on("click", logout)
+                            break;
 
-                    default:
-                        break;
+                        default:
+                            break;
+                    }
                 }
+                a.html(u.name);
+                $("#menu").append(a);
             }
-            a.html(u.name);
-            $("#menu").append(a);
         }
-    })
+    }, true)
     $("#menuToggleContainer").click((e) => {
         $("#menu").toggleClass("show");
         $("#menuToggleContainer").toggleClass("show");
     })
     getAppPersonalization();
 })
-
-function getAppPersonalization(){
+function css_var(cssvar, cssval) {
+    console.log("Setting " + cssvar + " to " + cssval);
+    document.querySelector(':root').style.setProperty('--' + cssvar, cssval)
+}
+function getAppPersonalization() {
     send_request("/api/getAppPersonalization", "GET", null, (data) => {
         if (data != "") {
             const jsonData = JSON.parse(data);
             setFaviconFromUrl(jsonData.favicon)
+            css_var('accentColor', jsonData.accentColor)
         }
     })
 }
 
-function setFaviconFromUrl(url){
-    window.favicon=new Favico({
-        animation:'popFade'
+function setFaviconFromUrl(url) {
+    window.favicon = new Favico({
+        animation: 'popFade'
     });
     let tmpImg = document.createElement("img");
     tmpImg.src = url;
     favicon.image(tmpImg);
 }
-function setFaviconFromImgElm(elm){
-    window.favicon=new Favico({
-        animation:'popFade'
+function setFaviconFromImgElm(elm) {
+    window.favicon = new Favico({
+        animation: 'popFade'
     });
     favicon.image(elm);
 }
