@@ -39,10 +39,11 @@ function start() {
         }
 
         //testDB(config)
-        setInterval(() => {
-            checkUpdates(true);
-
-        }, config.other.update_check_interval_seconds * 1000)
+        if(config.other.automatic_updates){
+            setInterval(() => {
+                if(config.other.automatic_updates) checkUpdates(true);
+            }, config.other.update_check_interval_seconds * 1000)
+        }
 
         app.use(nocache());
         app.set('etag', false)
@@ -721,6 +722,7 @@ function initConfigFile() {
         },
         other: {
             force_https: false,
+            automatic_updates: true,
             update_check_interval_seconds: 1800
         }
     }
