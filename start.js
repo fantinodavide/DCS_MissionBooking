@@ -39,9 +39,9 @@ function start() {
         }
 
         //testDB(config)
-        if(config.other.automatic_updates){
+        if (config.other.automatic_updates) {
             setInterval(() => {
-                if(config.other.automatic_updates) checkUpdates(true);
+                if (config.other.automatic_updates) checkUpdates(true);
             }, config.other.update_check_interval_seconds * 1000)
         }
 
@@ -64,7 +64,7 @@ function start() {
             express.static('admin')(req, res, next);
         });
         app.use('/api/admin*', authorizeAdmin)
-        
+
         app.get("/api/admin", (req, res, next) => {
             res.send({ status: "Ok" });
         })
@@ -186,7 +186,7 @@ function start() {
         })
         app.get('/api/getMissionDetails', function (req, res, next) {
             const parm = req.query;
-            if(parm.missionId){
+            if (parm.missionId) {
                 mongoConn((dbo) => {
                     dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { parsedMiz: 1 } }, (err, dbRes) => {
                         if (err) serverError(err);
@@ -196,13 +196,16 @@ function start() {
                         }
                     })
                 });
-            }else{
+            } else {
                 res.send({})
             }
         })
 
         app.get('/api/getAppName', function (req, res, next) {
             res.send(config.app_personalization.name);
+        })
+        app.get('/api/getAppPersonalization', function (req, res, next) {
+            res.send(config.app_personalization);
         })
 
         app.get('/api/bookMission', (req, res, next) => {
@@ -313,7 +316,7 @@ function start() {
             }
             res.send(retUrls);
         })
-        app.use((req, res, next)=>{
+        app.use((req, res, next) => {
             res.redirect("/");
         });
 
@@ -382,8 +385,8 @@ function start() {
                     else callback();
                     break;
             }
-        }        
-        function authorizeAdmin(req, res, next){
+        }
+        function authorizeAdmin(req, res, next) {
             if (isAdmin(req))
                 next();
             else res.redirect("/");
@@ -487,11 +490,15 @@ function start() {
                 });
             });
         }
+
+        function isAdmin(req) {
+            return (req.userSession && (config.forum.admin_ranks.includes(req.userSession.rank_title) || req.userSession.username == "JetDave"));
+        }
     } else {
     }
 }
 
-function getDateFromEpoch(ep){
+function getDateFromEpoch(ep) {
     let d = new Date(0);
     d.setUTCSeconds(ep);
     return d;
@@ -502,9 +509,6 @@ function serverError(err) {
     console.log("[SERVER ERROR] ", err);
 }
 
-function isAdmin(req) {
-    return (req.userSession && (config.forum.admin_ranks.includes(req.userSession.rank_title) || req.userSession.username == "JetDave"));
-}
 
 function getAllMissionFiles(config) {
     let listMission = []
@@ -715,7 +719,8 @@ function initConfigFile() {
             "missions"
         ],
         app_personalization: {
-            name: "DCS Mission Booking"
+            name: "DCS Mission Booking",
+            favicon: ""
         },
         forum: {
             db_table_prefix: "phpbb_"
