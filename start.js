@@ -1,4 +1,4 @@
-const versionN = 1.1;
+const versionN = 1.2;
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
