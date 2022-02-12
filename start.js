@@ -400,6 +400,8 @@ function start() {
 
         function checkUpdates(downloadInstallUpdate = false) {
             let releasesUrl = "https://api.github.com/repos/fantinodavide/DCS_MissionBooking/releases";
+            let curDate = new Date();
+            console.log("Checking for updates",curDate.toLocaleString());
             axios
                 .get(releasesUrl)
                 .then(res => {

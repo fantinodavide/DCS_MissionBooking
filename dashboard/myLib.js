@@ -51,15 +51,22 @@ function getAppPersonalization() {
     })
 }
 
-function setFaviconFromUrl(url) {
-    window.favicon = new Favico({
-        animation: 'popFade'
-    });
+function setFaviconFromUrl(favImg){
+    let headTitle = document.querySelector('head');
+    let setFavicon = document.createElement('link');
+    setFavicon.setAttribute('rel','shortcut icon');
+    setFavicon.setAttribute('href',favImg);
+    headTitle.appendChild(setFavicon);
+}
+/*function setFaviconFromUrl(url) {
     let tmpImg = document.createElement("img");
     tmpImg.src = url;
-    favicon.image(tmpImg);
-}
+    setFaviconFromImgElm(tmpImg)
+    
+}*/
+
 function setFaviconFromImgElm(elm) {
+    console.log("Setting favicon");
     window.favicon = new Favico({
         animation: 'popFade'
     });
