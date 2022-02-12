@@ -31,7 +31,33 @@ $(document).ready(() => {
         $("#menu").toggleClass("show");
         $("#menuToggleContainer").toggleClass("show");
     })
+    getAppPersonalization();
 })
+
+function getAppPersonalization(){
+    send_request("/api/getAppPersonalization", "GET", null, (data) => {
+        if (data != "") {
+            const jsonData = JSON.parse(data);
+            setFaviconFromUrl(jsonData.favicon)
+        }
+    })
+}
+
+function setFaviconFromUrl(url){
+    window.favicon=new Favico({
+        animation:'popFade'
+    });
+    let tmpImg = document.createElement("img");
+    tmpImg.src = url;
+    favicon.image(tmpImg);
+}
+function setFaviconFromImgElm(elm){
+    window.favicon=new Favico({
+        animation:'popFade'
+    });
+    favicon.image(elm);
+}
+
 function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma", showAnnulla = true) {
     //if($(".inputPopup")[0]) return;
     if ($(".loginContainer")[0]) return;
