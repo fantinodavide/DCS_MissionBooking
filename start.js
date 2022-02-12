@@ -1,4 +1,4 @@
-const versionN = 1.2;
+const versionN = 1.3;
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -503,7 +503,7 @@ function serverError(err) {
 }
 
 function isAdmin(req) {
-    return (req.userSession && (req.userSession.rank_title == "Site Admin" || req.userSession.rank_title == "Site Admin" || req.userSession.username == "JetDave"));
+    return (req.userSession && (config.forum.admin_ranks.includes(req.userSession.rank_title) || req.userSession.username == "JetDave"));
 }
 
 function getAllMissionFiles(config) {
