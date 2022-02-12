@@ -56,20 +56,14 @@ function start() {
         app.use('*', getSession);
         app.use('/api/*', requireLogin);
 
-        app.use('/admin*', (req, res, next) => {
-            if (isAdmin(req))
-                next();
-            else res.redirect("/");
-        })
+        app.use('/admin*', authorizeAdmin)
+        app.use('/publishment*', authorizeAdmin)
 
-        app.use('/admin', function (req, res, next) {
+        app.use('/publishment', function (req, res, next) {
             express.static('admin')(req, res, next);
         });
-        app.use('/api/admin*', function (req, res, next) {
-            if (isAdmin(req))
-                next();
-            else res.sendStatus(403)
-        })
+        app.use('/api/admin*', authorizeAdmin)
+        
         app.get("/api/admin", (req, res, next) => {
             res.send({ status: "Ok" });
         })
@@ -310,7 +304,7 @@ function start() {
                 retUrls = retUrls.concat([
                     {
                         name: "Publishment",
-                        url: "/admin",
+                        url: "/publishment",
                         order: 1,
                         type: "redirect"
                     }
@@ -318,6 +312,9 @@ function start() {
             }
             res.send(retUrls);
         })
+        app.use((req, res, next)=>{
+            res.redirect("/");
+        });
 
         function mongoConn(connCallback) {
             let url = "mongodb://" + config.database.mongo.host + ":" + config.database.mongo.port;
@@ -384,6 +381,11 @@ function start() {
                     else callback();
                     break;
             }
+        }        
+        function authorizeAdmin(req, res, next){
+            if (isAdmin(req))
+                next();
+            else res.redirect("/");
         }
         function forceHTTPS(req, res, next) {
             if (config.other.force_https) {
@@ -488,6 +490,11 @@ function start() {
     }
 }
 
+function getDateFromEpoch(ep){
+    let d = new Date(0);
+    d.setUTCSeconds(ep);
+    return d;
+}
 
 function serverError(err) {
     res.sendStatus(500);
@@ -696,7 +703,7 @@ function initConfigFile() {
                 database: "my_db"
             },
             mongo: {
-                host: "0.0.0.0",
+                host: "127.0.0.1",
                 port: 27017,
                 //"_user": "",
                 //"_password": "",
@@ -714,7 +721,7 @@ function initConfigFile() {
         },
         other: {
             force_https: false,
-            update_check_interval_seconds: 3600
+            update_check_interval_seconds: 1800
         }
     }
     var rl = readline.createInterface({
