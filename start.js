@@ -413,7 +413,7 @@ function start() {
             if (config.other.force_https) {
                 const path = req.originalUrl.replace(/\?.*$/, '');
                 switch (path) {
-                    case "/api/checkInstallUpdate":
+                    case "/api/admin/checkInstallUpdate":
                         next();
                         break;
 
