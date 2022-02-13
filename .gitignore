@@ -3,6 +3,7 @@ node_modules/
 conf.json
 **/*.bak
 **/*.url
+**/*.pem
 ignored/
 tmp_update/
 

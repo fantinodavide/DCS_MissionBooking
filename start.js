@@ -4,6 +4,7 @@ const fs = require("fs");
 const StreamZip = require('node-stream-zip');
 const LUA = require('luaparse');
 const mysql = require('mysql');
+const https = require('https');
 const express = require('express');
 const app = express();
 const path = require('path')
@@ -32,12 +33,23 @@ function start() {
         checkUpdates(config.other.automatic_updates);
 
         if (enableServer) {
-            var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
-                var host = server.address().address
-                var port = server.address().port
+            const privKPath = 'certificates/privatekey.pem';
+            const certPath = 'certificates/certificate.pem';
+            if (fs.existsSync(privKPath) && fs.existsSync(certPath)) {
+                const httpsOptions = {
+                    key: fs.readFileSync(privKPath),
+                    cert: fs.readFileSync(certPath)
+                }
+                https.createServer(httpsOptions, app).listen(config.http_server.https_port);
+                console.log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
+            } else {
+                var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
+                    var host = server.address().address
+                    var port = server.address().port
 
-                console.log("\nWebserver listening at http://%s:%s", host, port)
-            })
+                    console.log("\HTTP server listening at http://%s:%s", host, port)
+                })
+            }
         }
 
         app.use(nocache());
@@ -173,9 +185,12 @@ function start() {
                 })
             });
         })
+        app.get('/api/getVersion', (req, res, next) => {
+            res.send(versionN);
+        })
         app.get('/api/getAllMissions/:sel?/:mission_id?', function (req, res, next) {
             const missionId = req.params.mission_id;
-            const find = req.params.sel=="m"?{_id: ObjectID(missionId)}:{};
+            const find = req.params.sel == "m" ? { _id: ObjectID(missionId) } : {};
             mongoConn((dbo) => {
                 dbo.collection("missions").find(find, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(10).toArray((err, dbRes) => {
                     if (err) serverError(err);
@@ -497,7 +512,7 @@ function start() {
         }
 
         function isAdmin(req) {
-            return (req.userSession && (config.forum.admin_ranks.includes(req.userSession.rank_title) || req.userSession.username == "JetDave"));
+            return (req.userSession && ((config.forum.admin_ranks && config.forum.admin_ranks.includes(req.userSession.rank_title)) || req.userSession.username == "JetDave"));
         }
     } else {
     }
@@ -703,7 +718,8 @@ function initConfigFile() {
     let emptyConfFile = {
         http_server: {
             bind_ip: "0.0.0.0",
-            port: 80
+            port: 80,
+            https_port: 443
         },
         database: {
             mysql: {
@@ -730,7 +746,11 @@ function initConfigFile() {
             accentc_color: "#f60"
         },
         forum: {
-            db_table_prefix: "phpbb_"
+            db_table_prefix: "forums_",
+            admin_ranks: [
+                "Site Admin",
+                "Moderatore"
+            ]
         },
         other: {
             force_https: false,
