@@ -413,9 +413,7 @@ function start() {
             if (config.other.force_https) {
                 const path = req.originalUrl.replace(/\?.*$/, '');
                 switch (path) {
-                    case "/api/getAppName":
-                    case "/api/getAppPersonalization":
-                    case "/api/login":
+                    case "/api/checkInstallUpdate":
                         next();
                         break;
 
