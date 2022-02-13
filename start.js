@@ -1,4 +1,4 @@
-const versionN = 1.7;
+const versionN = 1.8;
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -411,19 +411,11 @@ function start() {
         }
         function forceHTTPS(req, res, next) {
             if (config.other.force_https) {
-                const path = req.originalUrl.replace(/\?.*$/, '');
-                switch (path) {
-                    case "/api/admin/checkInstallUpdate":
-                        next();
-                        break;
-
-                    default:
-                        if (req.headers['x-forwarded-proto'] !== 'https')
-                            return res.redirect('https://' + req.headers.host + req.url);
-                        else
-                            next();
-                        break;
-                    }
+                if (req.headers['x-forwarded-proto'] !== 'https')
+                    return res.redirect('https://' + req.headers.host + req.url);
+                else
+                    next();
+                break;
             } else
                 next();
         }
