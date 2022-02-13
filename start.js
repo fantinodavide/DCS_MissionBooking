@@ -1,4 +1,4 @@
-const versionN = 1.4;
+const versionN = 1.5;
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -411,11 +411,21 @@ function start() {
         }
         function forceHTTPS(req, res, next) {
             if (config.other.force_https) {
-                if (req.headers['x-forwarded-proto'] !== 'https')
-                    // the statement for performing our redirection
-                    return res.redirect('https://' + req.headers.host + req.url);
-                else
-                    return next();
+                const path = req.originalUrl.replace(/\?.*$/, '');
+                switch (path) {
+                    case "/api/getAppName":
+                    case "/api/getAppPersonalization":
+                    case "/api/login":
+                        next();
+                        break;
+
+                    default:
+                        if (req.headers['x-forwarded-proto'] !== 'https')
+                            return res.redirect('https://' + req.headers.host + req.url);
+                        else
+                            return next();
+                        break;
+                }
             } else
                 return next();
         }
