@@ -46,7 +46,7 @@ function getAppPersonalization() {
         if (data != "") {
             const jsonData = JSON.parse(data);
             setFaviconFromUrl(jsonData.favicon)
-            css_var('accentColor', jsonData.accentColor)
+            css_var('accentColor', jsonData.accentc_color)
         }
     })
 }

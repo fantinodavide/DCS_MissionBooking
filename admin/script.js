@@ -20,6 +20,7 @@ $(document).ready(() => {
                 rq.done((data,status,xhr)=>{
                     console.log(data,status,xhr);
                     close();
+                    console.log("");
                     //if(status==200)
                 })
                 rq.fail((data,status,xhr)=>{
