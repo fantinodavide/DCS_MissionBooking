@@ -1,6 +1,7 @@
 $(document).ready(() => {
     send_request("/api/getAllMissions" + location.pathname, "GET", null, (data) => {
         const jsonData = JSON.parse(data);
+        
         for (let m of jsonData) {
             let missionDate = new Date(m.missionInputData.MissionDateandTime)
             $("#missionSelection").append("<option value=\"" + m._id + "\">" + toUpperFirstChar(m.missionInputData.MissionName) + ": " + missionDate.toLocaleDateString("it-IT", {}) + "</option>");
@@ -18,6 +19,7 @@ $(document).ready(() => {
         })
         $("#missionSelection option:eq(1)").prop('selected', true)
         $("#missionSelection").trigger("change")
+        if(jsonData.length<=1) $("#missionSelection").attr("disabled","disabled");
     })
 })
 
