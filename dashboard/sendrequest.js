@@ -32,7 +32,7 @@ function send_request(url, method, parameters, callback, forcecallback = false) 
 			}
 		},
 		error: function (jqXHR, test_status, str_error) {
-			console.error("Error: " + str_error);
+			console.error(url, str_error);
 		}
 	});
 }
