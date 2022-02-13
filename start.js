@@ -1,4 +1,4 @@
-const versionN = 1.6;
+const versionN = 1.7;
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -421,11 +421,11 @@ function start() {
                         if (req.headers['x-forwarded-proto'] !== 'https')
                             return res.redirect('https://' + req.headers.host + req.url);
                         else
-                            return next();
+                            next();
                         break;
-                }
+                    }
             } else
-                return next();
+                next();
         }
 
         function checkUpdates(downloadInstallUpdate = false) {
