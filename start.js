@@ -49,6 +49,12 @@ function start() {
         //app.use(express.urlencoded({ extended: true }));
 
         app.use('/', express.static('dashboard'));
+        app.use("/m/:mission_id", function (req, res, next) {
+            let mizId = req.params.mission_id;
+            let header;
+            express.static('dashboard')(req, res, next);
+        })
+
         app.use('*', getSession);
         app.use('/api/*', requireLogin);
 
@@ -66,7 +72,6 @@ function start() {
         app.get('/api/admin/getAllMissionFiles', function (req, res, next) {
             res.send(JSON.stringify(getAllMissionFiles(config)));
         })
-
         app.get('/api/admin/getMissionDetails', function (req, res, next) {
             res.send(JSON.stringify(flights));
         })
@@ -103,8 +108,8 @@ function start() {
         app.get("/api/admin/checkInstallUpdate", (req, res, next) => {
             res.send({ status: "Ok" });
             checkUpdates(true);
-
         })
+
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
             //console.log(parm);
@@ -168,9 +173,11 @@ function start() {
                 })
             });
         })
-        app.get('/api/getAllMissions', function (req, res, next) {
+        app.get('/api/getAllMissions/:sel?/:mission_id?', function (req, res, next) {
+            const missionId = req.params.mission_id;
+            const find = req.params.sel=="m"?{_id: ObjectID(missionId)}:{};
             mongoConn((dbo) => {
-                dbo.collection("missions").find({}, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(10).toArray((err, dbRes) => {
+                dbo.collection("missions").find(find, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(10).toArray((err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         res.send(dbRes);
@@ -401,7 +408,7 @@ function start() {
         function checkUpdates(downloadInstallUpdate = false) {
             let releasesUrl = "https://api.github.com/repos/fantinodavide/DCS_MissionBooking/releases";
             let curDate = new Date();
-            console.log("Checking for updates",curDate.toLocaleString());
+            console.log("Checking for updates", curDate.toLocaleString());
             axios
                 .get(releasesUrl)
                 .then(res => {
@@ -720,7 +727,7 @@ function initConfigFile() {
         app_personalization: {
             name: "DCS Mission Booking",
             favicon: "",
-            accentColor: "#f60"
+            accentc_color: "#f60"
         },
         forum: {
             db_table_prefix: "phpbb_"
