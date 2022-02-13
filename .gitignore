@@ -6,6 +6,7 @@ conf.json
 **/*.pem
 ignored/
 tmp_update/
-certificates/**.pam
+certificates/**/*.pam
 
 !missions/example.miz
+!certificates/
