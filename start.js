@@ -117,6 +117,18 @@ function start() {
                 });
             });
         })
+        app.use('/api/admin/removeMission', function (req, res, next) {
+            const missionId = req.params.mission_id;
+            mongoConn((dbo) => {
+                dbo.collection("missions").removeOne({_id: ObjectID(missionId)}, (err, dbRes) => {
+                    if (err) serverError(err);
+                    else {
+                        res.send(insData);
+                        console.log("Removed mission ", missionId);
+                    }
+                })
+            });
+        })
         app.get("/api/admin/checkInstallUpdate", (req, res, next) => {
             res.send({ status: "Ok" });
             checkUpdates(true);
