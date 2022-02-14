@@ -1,4 +1,4 @@
-const versionN = "1.13";
+const versionN = "1.14";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -123,7 +123,7 @@ function start() {
                 dbo.collection("missions").removeOne({_id: ObjectID(missionId)}, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
-                        res.send(insData);
+                        res.send(missionId);
                         console.log("Removed mission ", missionId);
                     }
                 })
