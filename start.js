@@ -120,7 +120,7 @@ function start() {
         app.get('/api/admin/removeMission', function (req, res, next) {
             const missionId = req.query.mission_id;
             mongoConn((dbo) => {
-                dbo.collection("missions").removeOne({_id: ObjectID(missionId)}, (err, dbRes) => {
+                dbo.collection("missions").deleteOne({_id: ObjectID(missionId)}, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         res.send(missionId);
