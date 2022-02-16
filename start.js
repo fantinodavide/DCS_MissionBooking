@@ -394,7 +394,7 @@ function start() {
                     dbo.collection("sessions").findOne({ token: parm.stok }, (err, dbRes) => {
                         if (err) res.sendStatus(500);
                         else if (dbRes != null) {
-                            log(dbRes);
+                            //log(dbRes);
                             req.userSession = dbRes
                             if (callback)
                                 callback();
@@ -808,6 +808,7 @@ function initConfigFile() {
 process.on('uncaughtException', function (err) {
     console.error((new Date).toUTCString() + ' uncaughtException:', err.message)
     console.error(err.stack)
+    logger.error(err.message,err.stack)
     if (++errorCount >= 10){
         console.error("Too many errors occurred during the current run. Terminating execution...");
         process.exit(1)
