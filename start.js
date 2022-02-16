@@ -150,6 +150,10 @@ function start() {
             res.send({ status: "Ok" });
             checkUpdates(true);
         })
+        app.get("/api/admin/restartApplication", (req, res, next) => {
+            res.send({ status: "Ok" });
+            restartProcess(req.query.delay?req.query.delay:0,0);
+        })
 
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
@@ -513,17 +517,7 @@ function start() {
                     if (fs.rmSync(dwnDir, { recursive: true })) console.log(`${dwnDir} folder deleted`);
                     //log(" > Deleting temporary folder");
                     console.log(" > Restart in 5 seconds");
-                    process.on("exit", function () {
-                        console.log("Process terminated");
-                        require("child_process").spawn(process.argv.shift(), process.argv, {
-                            cwd: process.cwd(),
-                            detached: true,
-                            stdio: "inherit"
-                        });
-                    });
-                    setTimeout(() => {
-                        process.exit();
-                    }, 5000)
+                    restartProcess();
                     /*const destinationPath = path.resolve(__dirname, "test");
                     const currentPath = path.resolve(dwnDir, gitZipDir);
 
@@ -544,6 +538,20 @@ function start() {
         }
     } else {
     }
+}
+
+function restartProcess(delay = 5000, code = 0) {
+    process.on("exit", function () {
+        console.log("Process terminated");
+        require("child_process").spawn(process.argv.shift(), process.argv, {
+            cwd: process.cwd(),
+            detached: true,
+            stdio: "inherit"
+        });
+    });
+    setTimeout(() => {
+        process.exit(code);
+    }, delay)
 }
 
 function getDateFromEpoch(ep) {
@@ -803,7 +811,7 @@ process.on('uncaughtException', function (err) {
     console.error("Uncaught Exception", err.message, err.stack)
     if (++errorCount >= 10) {
         console.error("Too many errors occurred during the current run. Terminating execution...");
-        process.exit(1)
+        restartProcess(0, 1);
     }
 })
 function randomString(size = 64) {
