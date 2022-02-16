@@ -22,8 +22,10 @@ const nocache = require('nocache');
 const axios = require('axios');
 const log4js = require('log4js');
 
+var errorCount = 0;
+
 let tmpData = new Date();
-const logFile = path.join(__dirname, 'logs', (tmpData.toLocaleString().replace(/, /g, '_').replaceAll(/\//g, '').replaceAll(/:/g, '') + ".log"));
+const logFile = path.join(__dirname, 'logs', (tmpData.toLocaleString().replace(/, /g, '_').replace(/\//g, '').replace(/:/g, '') + ".log"));
 if (!fs.existsSync('logs')) fs.mkdirSync('logs');
 if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "");
 
@@ -39,9 +41,9 @@ const enableServer = true;
 
 start();
 
-function log(a,b="",c="",d="",e="") {
-    console.log(a,b,c,d,e);
-    logger.trace(a,b,c,d,e)
+function log(a, b = "", c = "", d = "", e = "") {
+    console.log(a, b, c, d, e);
+    logger.trace(a, b, c, d, e)
 }
 
 function start() {
@@ -803,6 +805,14 @@ function initConfigFile() {
     }
     return false;
 }
+process.on('uncaughtException', function (err) {
+    console.error((new Date).toUTCString() + ' uncaughtException:', err.message)
+    console.error(err.stack)
+    if (++errorCount >= 10){
+        console.error("Too many errors occurred during the current run. Terminating execution...");
+        process.exit(1)
+    }
+})
 function randomString(size = 64) {
     return crypto
         .randomBytes(size)
