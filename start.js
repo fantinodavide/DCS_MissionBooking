@@ -1,4 +1,4 @@
-const versionN = "1.15";
+const versionN = "1.16";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -20,15 +20,34 @@ const cookieParser = require('cookie-parser');
 const { application } = require("express");
 const nocache = require('nocache');
 const axios = require('axios');
+const log4js = require('log4js');
+
+let tmpData = new Date();
+const logFile = path.join(__dirname, 'logs', (tmpData.toLocaleString().replace(/, /g, '_').replaceAll(/\//g, '').replaceAll(/:/g, '') + ".log"));
+if (!fs.existsSync('logs')) fs.mkdirSync('logs');
+if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "");
+
+
+log4js.configure({
+    appenders: { App: { type: "file", filename: logFile } },
+    categories: { default: { appenders: ["App"], level: "all" } }
+});
+
+const logger = log4js.getLogger("App");
 
 const enableServer = true;
 
 start();
 
+function log(a,b="",c="",d="",e="") {
+    console.log(a,b,c,d,e);
+    logger.trace(a,b,c,d,e)
+}
+
 function start() {
     if (!initConfigFile()) {
         const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
-        console.log(config);
+        log(config);
 
         checkUpdates(config.other.automatic_updates);
 
@@ -41,13 +60,13 @@ function start() {
                     cert: fs.readFileSync(certPath)
                 }
                 https.createServer(httpsOptions, app).listen(config.http_server.https_port);
-                console.log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
+                log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
             } else {
                 var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
                     var host = server.address().address
                     var port = server.address().port
 
-                    console.log("\HTTP server listening at http://%s:%s", host, port)
+                    log("\HTTP server listening at http://%s:%s", host, port)
                 })
             }
         }
@@ -88,19 +107,19 @@ function start() {
             res.send(JSON.stringify(flights));
         })
         app.get('/api/admin/testParseMission', function (req, res, next) {
-            console.log(req.body);
+            log(req.body);
             //parseMissionFile("C:\\Users\\Dave\\Saved Games\\DCS.openbeta\\Missions\\F14 Booking Test.miz", (parsedMiz) => {
             parseMissionFile("missions\\example.miz", (parsedMiz) => {
-                console.log(parsedMiz);
+                log(parsedMiz);
                 let insData = new Object(req.body);
                 insData.parsedMiz = parsedMiz;
                 res.send(parsedMiz);
             });
         })
         app.post('/api/admin/publishMission', function (req, res, next) {
-            console.log(req.body);
+            log(req.body);
             parseMissionFile(req.body.missionFile, (parsedMiz) => {
-                console.log(parsedMiz);
+                log(parsedMiz);
 
                 let insData = new Object(req.body);
                 insData.parsedMiz = parsedMiz;
@@ -111,7 +130,7 @@ function start() {
                         if (err) serverError(err);
                         else {
                             res.send(insData);
-                            console.log("PUblished mission ", insData);
+                            log("PUblished mission ", insData);
                         }
                     })
                 });
@@ -120,11 +139,11 @@ function start() {
         app.get('/api/admin/removeMission', function (req, res, next) {
             const missionId = req.query.mission_id;
             mongoConn((dbo) => {
-                dbo.collection("missions").deleteOne({_id: ObjectID(missionId)}, (err, dbRes) => {
+                dbo.collection("missions").deleteOne({ _id: ObjectID(missionId) }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         res.send(missionId);
-                        console.log("Removed mission ", missionId);
+                        log("Removed mission ", missionId);
                     }
                 })
             });
@@ -136,16 +155,16 @@ function start() {
 
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
-            //console.log(parm);
+            //log(parm);
             mysqlConn((con) => {
                 //con.query("SELECT user_password FROM forums_users LIMIT 1", function (err, result, fields) {
                 //const query = "SELECT user_id, username, user_email, user_password, group_name, rank_title FROM " + config.forum.db_table_prefix + "users LEFT JOIN " + config.forum.db_table_prefix + "groups ON (" + config.forum.db_table_prefix + "users.group_id = " + config.forum.db_table_prefix + "groups.group_id) LEFT JOIN " + config.forum.db_table_prefix + "ranks ON (" + config.forum.db_table_prefix + "users.user_rank = " + config.forum.db_table_prefix + "ranks.rank_id) WHERE (username_clean = \"" + parm.Username.toLowerCase() + "\")";
                 const query = "SELECT user_id, username, user_email, user_password, group_name, rank_title FROM " + config.forum.db_table_prefix + "users LEFT JOIN " + config.forum.db_table_prefix + "groups ON (" + config.forum.db_table_prefix + "users.group_id = " + config.forum.db_table_prefix + "groups.group_id) LEFT JOIN " + config.forum.db_table_prefix + "ranks ON (" + config.forum.db_table_prefix + "users.user_rank = " + config.forum.db_table_prefix + "ranks.rank_id) WHERE (username_clean = \"" + parm.Username.toLowerCase() + "\" OR user_email = \"" + parm.Username + "\")";
-                //console.log(query);
+                //log(query);
                 con.query(query, function (err, result, fields) {
                     if (err) serverError(err);
                     if (result[0]) {
-                        console.log("Result: ", result[0]);
+                        log("Result: ", result[0]);
                         verifyArgon2(result[0].user_password, parm.Password, (val) => {
                             if (val) {
                                 let userDt = result[0];
@@ -192,7 +211,7 @@ function start() {
                     if (err) serverError(err);
                     else {
                         res.send("logout_ok");
-                        //console.log("DB Res ", dbRes);
+                        //log("DB Res ", dbRes);
                     }
                 })
             });
@@ -208,7 +227,7 @@ function start() {
                     if (err) serverError(err);
                     else {
                         res.send(dbRes);
-                        //console.log("DB Res ", dbRes);
+                        //log("DB Res ", dbRes);
                     }
                 })
             });
@@ -221,7 +240,7 @@ function start() {
                         if (err) serverError(err);
                         else {
                             res.send(dbRes);
-                            //console.log("DB Res ", dbRes);
+                            //log("DB Res ", dbRes);
                         }
                     })
                 });
@@ -241,12 +260,12 @@ function start() {
             const parm = req.query;
 
             mongoConn((dbo) => {
-                //console.log(req.query);
+                //log(req.query);
 
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + ".player";
                 let updateUserId = findStr + ".user_id";
-                //console.log(update);
+                //log(update);
 
                 let playerName = req.userSession.username;
                 let userId = req.userSession.user_id;
@@ -276,12 +295,12 @@ function start() {
             const parm = req.query;
 
             mongoConn((dbo) => {
-                //console.log(req.query);
+                //log(req.query);
 
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + ".player";
                 let updateUserId = findStr + ".user_id";
-                //console.log(update);
+                //log(update);
 
                 let playerName = "";
                 let userId = req.userSession.user_id;
@@ -373,7 +392,7 @@ function start() {
                     dbo.collection("sessions").findOne({ token: parm.stok }, (err, dbRes) => {
                         if (err) res.sendStatus(500);
                         else if (dbRes != null) {
-                            console.log(dbRes);
+                            log(dbRes);
                             req.userSession = dbRes
                             if (callback)
                                 callback();
@@ -410,7 +429,7 @@ function start() {
                     break;
 
                 default:
-                    console.log("\nREQ: " + path + "\nSESSION: ", req.userSession, "\nPARM: ", parm);
+                    log("\nREQ: " + path + "\nSESSION: ", req.userSession, "\nPARM: ", parm);
                     if (!req.userSession) res.send({ status: "login_required" });
                     else callback();
                     break;
@@ -434,7 +453,7 @@ function start() {
         function checkUpdates(downloadInstallUpdate = false) {
             let releasesUrl = "https://api.github.com/repos/fantinodavide/DCS_MissionBooking/releases";
             let curDate = new Date();
-            console.log("Checking for updates", curDate.toLocaleString());
+            log("Checking for updates", curDate.toLocaleString());
             axios
                 .get(releasesUrl)
                 .then(res => {
@@ -448,7 +467,7 @@ function start() {
                     const checkV = gitResData.tag_name.toUpperCase().replace("V", "").split(".");
                     const versionSplit = versionN.toString().split(".");
                     if (parseInt(versionSplit[0]) < parseInt(checkV[0]) || parseInt(versionSplit[1]) < parseInt(checkV[1])) {
-                        console.log("Update found: " + gitResData.tag_name, gitResData.name);
+                        log("Update found: " + gitResData.tag_name, gitResData.name);
                         //if (updateFoundCallback) updateFoundCallback();
                         if (downloadInstallUpdate) downloadLatestUpdate(gitResData);
                     }
@@ -459,7 +478,7 @@ function start() {
         }
 
         function downloadLatestUpdate(gitResData) {
-            console.log("Downloading update: " + gitResData.tag_name, gitResData.name);
+            log("Downloading update: " + gitResData.tag_name, gitResData.name);
             const url = gitResData.zipball_url;
             const dwnDir = path.resolve(__dirname, 'tmp_update');//, 'gitupd.zip')
             const dwnFullPath = path.resolve(dwnDir, 'gitupd.zip')
@@ -490,14 +509,14 @@ function start() {
             });
             zip.on('ready', () => {
                 const gitZipDir = Object.values(zip.entries())[0].name;
-                console.log(gitZipDir);
+                log(gitZipDir);
                 zip.extract(gitZipDir, __dirname, (err, res) => {
-                    console.log(" > Extracted", res, "files");
-                    if (fs.rmSync(dwnDir, { recursive: true })) console.log(`${dwnDir} folder deleted`);
-                    //console.log(" > Deleting temporary folder");
-                    console.log(" > Restart in 5 seconds");
+                    log(" > Extracted", res, "files");
+                    if (fs.rmSync(dwnDir, { recursive: true })) log(`${dwnDir} folder deleted`);
+                    //log(" > Deleting temporary folder");
+                    log(" > Restart in 5 seconds");
                     process.on("exit", function () {
-                        console.log("Process terminated");
+                        log("Process terminated");
                         require("child_process").spawn(process.argv.shift(), process.argv, {
                             cwd: process.cwd(),
                             detached: true,
@@ -514,7 +533,7 @@ function start() {
                         if (err) {
                             throw err
                         } else {
-                            console.log("Successfully moved the file!");
+                            log("Successfully moved the file!");
                         }
                     });*/
                     zip.close();
@@ -538,6 +557,7 @@ function getDateFromEpoch(ep) {
 function serverError(err) {
     res.sendStatus(500);
     console.log("[SERVER ERROR] ", err);
+    logger.error(err)
 }
 
 
@@ -554,7 +574,7 @@ function getAllMissionFiles(config) {
     listMission = listMission.sort(function (a, b) {
         return b.lastupdate - a.lastupdate;
     });
-    //console.log(listMission);
+    //log(listMission);
     return listMission;
 }
 function parseMissionFile(mizFile, success) {
@@ -569,8 +589,8 @@ function parseMissionFile(mizFile, success) {
 
         flights = getMissionFlightsFromString(missionFileString)
 
-        //console.log(flights)
-        //console.log(JSON.stringify(flights))
+        //log(flights)
+        //log(JSON.stringify(flights))
         //fs.writeFileSync("./output.json", JSON.stringify(flights, null, "\t"));
 
         success(flights);
@@ -592,7 +612,7 @@ function getMissionFlightsFromString(missionFile) {
                             for (let o4 of c.value.fields) {
                                 if (["plane", "helicopter"].includes(o4.key.raw.replace(/\"/g, ''))) {
                                     for (let fGroups of o4.value.fields[0].value.fields) {
-                                        //console.log(fGroups);
+                                        //log(fGroups);
                                         //flights[side].push();
                                         let fInfo = {};
                                         let fName = "";
@@ -643,9 +663,9 @@ function getMissionFlightsFromString(missionFile) {
                                                                     } else if (aSubInfoKey == "callsign") flightsReturn[side][fName].callsign = parseCallsign(aSubInfoValue.fields);
 
                                                                     if (["type", "unitid", "name", "parking", "skill"].includes(aSubInfoKey)) {
-                                                                        //console.log((arrayIndex + ") " + aSubInfoKey + ": "), aSubInfoValue)
+                                                                        //log((arrayIndex + ") " + aSubInfoKey + ": "), aSubInfoValue)
                                                                         if (aSubInfoKey == "callsign") {
-                                                                            console.log("callsign", aSubInfoValue);
+                                                                            log("callsign", aSubInfoValue);
                                                                             flightsReturn[side][fName]["units"][arrayIndex][aSubInfoKey] = aSubInfoValue.name;
                                                                         } else if (aSubInfoKey == "skill") {
                                                                             flightsReturn[side][fName].skill = aSubInfoValue;
@@ -678,7 +698,7 @@ function LUARealString(txt) {
 }
 function parseCallsign(callsignLua) {
     let ret = { name: "", group: 1, pilot: 1 };
-    console.log("callsign", callsignLua, ret);
+    log("callsign", callsignLua, ret);
     if (callsignLua) {
         if (callsignLua[1]) ret.group = callsignLua[1].value.value;
         if (callsignLua[2]) ret.pilot = callsignLua[2].value.value;
@@ -693,12 +713,12 @@ function testDB(config) {
     var con = mysql.createConnection(config.database.mysql);
 
     con.connect(function (err) {
-        if (err) console.log("MySQL Test: ", err);
-        console.log("Connected!");
+        if (err) log("MySQL Test: ", err);
+        log("Connected!");
         //con.query("SELECT username, user_password, user_email FROM " + config.forum.db_table_prefix + "users WHERE username = 'JetDave' LIMIT 10 ", function (err, result, fields) {
         con.query("SELECT user_id, username, user_email, user_password, group_name, rank_title FROM forums_users LEFT JOIN forums_groups ON (forums_users.group_id = forums_groups.group_id AND forums_users.username) LEFT JOIN forums_ranks ON (forums_users.user_rank = forums_ranks.rank_id) WHERE username = 'Iggy' OR username = 'Webber'", function (err, result, fields) {
-            if (err) console.log("MySQL Test: ", err);
-            console.log("Result: ", result);
+            if (err) log("MySQL Test: ", err);
+            log("Result: ", result);
             //fs.writeFileSync("users_Iggy_Webber.json", JSON.stringify(result, null, "\t"));
         });
     });
@@ -713,7 +733,7 @@ function testMongoDB(config) {
  
         dbo.collection("missions").find({}).toArray(function (err, result) {
             if (err) res.sendStatus(500);
-            console.log(result);
+            log(result);
             //let res = await dbo.collection("test").insertOne({})
             db.close();
         });
@@ -778,7 +798,7 @@ function initConfigFile() {
 
     if (!fs.existsSync("conf.json")) {
         fs.writeFileSync("conf.json", JSON.stringify(emptyConfFile, null, "\t"));
-        console.log("Configuration file created, set your parameters and rerun \"node start\".\nTerminating execution...");
+        log("Configuration file created, set your parameters and rerun \"node start\".\nTerminating execution...");
         return true;
     }
     return false;
