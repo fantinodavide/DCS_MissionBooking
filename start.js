@@ -830,7 +830,7 @@ function initConfigFile() {
         other: {
             force_https: false,
             automatic_updates: true,
-            update_check_interval_seconds: 1800
+            update_check_interval_seconds: 3600
         }
     }
     /*var rl = readline.createInterface({
@@ -849,7 +849,7 @@ function initConfigFile() {
         const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
         var config2 = { ...config }
         updateConfig(config2, emptyConfFile);
-        fs.writeFileSync("confUpd.json", JSON.stringify(config2, null, "\t"));
+        fs.writeFileSync("conf.json", JSON.stringify(config2, null, "\t"));
     }
     return false;
 
