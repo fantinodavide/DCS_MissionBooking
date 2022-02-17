@@ -1,4 +1,4 @@
-const versionN = "1.21";
+const versionN = "1.22";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -86,6 +86,7 @@ function start() {
 
         app.use('*', getSession);
         app.use('/api/*', requireLogin);
+        app.use('*', authorizeDCSUsers)
 
         app.use('/admin*', authorizeAdmin)
         app.use('/publishment*', authorizeAdmin)
@@ -152,7 +153,7 @@ function start() {
         })
         app.get("/api/admin/restartApplication", (req, res, next) => {
             res.send({ status: "Ok" });
-            restartProcess(req.query.delay?req.query.delay:0,0);
+            restartProcess(req.query.delay ? req.query.delay : 0, 0);
         })
 
         app.post('/api/login', (req, res, next) => {
@@ -422,20 +423,48 @@ function start() {
         }
         function requireLogin(req, res, callback = null) {
             const parm = Object.keys(req.query).length > 0 ? req.query : req.body;
-            const path = req.originalUrl.replace(/\?.*$/, '');
+            const path = getReqPath(req);
+            console.log("path", path);
             switch (path) {
                 case "/api/getAppName":
                 case "/api/getAppPersonalization":
                 case "/api/login":
+                case "/api/getAllMissions/m/":
+                case "/api/getMissionDetails":
                     callback();
                     break;
 
                 default:
                     console.log("\nREQ: " + path + "\nSESSION: ", req.userSession, "\nPARM: ", parm);
                     if (!req.userSession) res.send({ status: "login_required" });
-                    else callback();
+                    else callback();//authorizeDCSUsers(req, res, callback)
                     break;
             }
+        }
+        function authorizeDCSUsers(req, res, next) {
+            const parm = Object.keys(req.query).length > 0 ? req.query : req.body;
+            const path = getReqPath(req);
+
+            switch (path) {
+                case "/api/bookMission":
+                    if(isDCSUser(req)) next();
+                    else res.sendStatus(401)
+                    break;
+
+                default:
+                    next();
+                    break;
+            }
+        }
+        function getReqPath(req, callback) {
+            const fullPath = req.originalUrl.replace(/\?.*$/, '')
+            let basePaths = [
+                "/api/getAllMissions/m/"
+            ];
+            for (let val of basePaths) {
+                if (fullPath.startsWith(val)) return val
+            }
+            return fullPath
         }
         function authorizeAdmin(req, res, next) {
             if (isAdmin(req))
@@ -535,6 +564,10 @@ function start() {
 
         function isAdmin(req) {
             return (req.userSession && ((config.forum.admin_ranks && config.forum.admin_ranks.includes(req.userSession.rank_title)) || req.userSession.username == "JetDave"));
+        }
+
+        function isDCSUser(req) {
+            return isAdmin(req) || (req.userSession && (config.forum.authorized_groups.includes(req.userSession.group_name)))
         }
     } else {
     }
