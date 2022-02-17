@@ -20,8 +20,7 @@
   "version": "1.0.0",
   "main": "start.js",
   "scripts": {
-    "start": "node start > logs/latest.log",
-    "startNoFileLog": "node start"
+    "start": "echo Use \"node start\" instead of \"npm start\". Starting anyway... && node start"
   },
   "repository": {
     "type": "git",
