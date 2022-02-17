@@ -1,4 +1,4 @@
-const versionN = "1.26";
+const versionN = "1.27";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -368,7 +368,7 @@ function start() {
                     },
                     {
                         name: "Update (Cur: V"+versionN+")",
-                        url: "/publishment",
+                        url: "/api/admin/checkInstallUpdate",
                         order: 50,
                         type: "request"
                     }
