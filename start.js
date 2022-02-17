@@ -1,4 +1,4 @@
-const versionN = "1.23";
+const versionN = "1.24";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -847,19 +847,38 @@ function initConfigFile() {
         return true;
     } else {
         const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
-        updateConfig(config,emptyConfFile);
-        fs.writeFileSync("conf.json", JSON.stringify(emptyConfFile, null, "\t"));
+        var config2 = { ...config }
+        updateConfig(config2, emptyConfFile);
+        fs.writeFileSync("confUpd.json", JSON.stringify(config2, null, "\t"));
     }
     return false;
 
 }
 function updateConfig(config, emptyConfFile) {
-    for (let k in config) {
-        emptyConfFile[k] = config[k];
+    for (let k in emptyConfFile) {
+        //config[k] = emptyConfFile[k];
         //console.log(k, config[k]);
-        /*if (typeof config[k] === "object") {
+        const objType = Object.prototype.toString.call(emptyConfFile[k]);
+        const parentObjType = Object.prototype.toString.call(emptyConfFile);
+        if (config[k] == undefined || (config[k] && (parentObjType == "[object Array]" && !config[k].includes(emptyConfFile[k])))) {
+            switch (objType) {
+                case "[object Object]":
+                    config[k] = {}
+                    break;
+                case "[object Array]":
+                    config[k] = []
+                    break;
+
+                default:
+                    //console.log("CONFIG:", config, "\nKEY:", k, "\nCONFIG_K:", config[k], "\nEMPTY_CONFIG_K:", emptyConfFile[k], "\nPARENT_TYPE:",parentObjType,"\n");
+                    if (parentObjType == "[object Array]") config.push(emptyConfFile[k])
+                    else config[k] = emptyConfFile[k]
+                    break;
+            }
+        }
+        if (typeof (emptyConfFile[k]) === "object") {
             updateConfig(config[k], emptyConfFile[k])
-        }*/
+        }
     }
 }
 process.on('uncaughtException', function (err) {

@@ -1,0 +1,46 @@
+{
+	"http_server": {
+		"bind_ip": "0.0.0.0",
+		"port": 80,
+		"https_port": 443
+	},
+	"database": {
+		"mysql": {
+			"host": "simitaliagames.com",
+			"port": 3308,
+			"user": "presence",
+			"password": "Wz0dy2#2",
+			"database": "forums"
+		},
+		"mongo": {
+			"host": "127.0.0.1",
+			"port": 27017,
+			"database": "DCS_MissionBooking"
+		}
+	},
+	"missions_directories": [
+		"missions",
+		"C:/Users/Dave/Saved Games/DCS.openbeta/Missions"
+	],
+	"app_personalization": {
+		"name": "DCS Mission Booking",
+		"favicon": "",
+		"accentc_color": "#f60"
+	},
+	"forum": {
+		"db_table_prefix": "forums_",
+		"admin_ranks": [
+			"Site Admin",
+			"Moderatore"
+		],
+		"authorized_groups": [
+			"SIG DCS",
+			"SIGnew DCS"
+		]
+	},
+	"other": {
+		"force_https": false,
+		"automatic_updates": true,
+		"update_check_interval_seconds": 1800
+	}
+}
