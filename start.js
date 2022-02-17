@@ -818,6 +818,10 @@ function initConfigFile() {
             admin_ranks: [
                 "Site Admin",
                 "Moderatore"
+            ],
+            authorized_groups:[
+                "SIG DCS",
+                "SIGnew DCS"
             ]
         },
         other: {
