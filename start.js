@@ -99,6 +99,9 @@ function start() {
         app.get("/api/admin", (req, res, next) => {
             res.send({ status: "Ok" });
         })
+        app.get("/api/admin/getConfig", (req, res, next) => {
+            res.send(config);
+        })
         app.get('/api/admin/getAllMissionFiles', function (req, res, next) {
             res.send(JSON.stringify(getAllMissionFiles(config)));
         })
