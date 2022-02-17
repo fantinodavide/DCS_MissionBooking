@@ -1,4 +1,4 @@
-const versionN = "1.22";
+const versionN = "1.23";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -447,7 +447,7 @@ function start() {
 
             switch (path) {
                 case "/api/bookMission":
-                    if(isDCSUser(req)) next();
+                    if (isDCSUser(req)) next();
                     else res.sendStatus(401)
                     break;
 
@@ -819,7 +819,7 @@ function initConfigFile() {
                 "Site Admin",
                 "Moderatore"
             ],
-            authorized_groups:[
+            authorized_groups: [
                 "SIG DCS",
                 "SIGnew DCS"
             ]
@@ -830,19 +830,34 @@ function initConfigFile() {
             update_check_interval_seconds: 1800
         }
     }
-    var rl = readline.createInterface({
+    /*var rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
-    });
+    });*/
 
     //let q = await rl.question("Which is the app personalized name? Leave empty to keep the default name: " + emptyConfFile.app_personalization.name + "\n> ");
 
     if (!fs.existsSync("conf.json")) {
-        fs.writeFileSync("conf.json", JSON.stringify(emptyConfFile, null, "\t"));
         console.log("Configuration file created, set your parameters and rerun \"node start\".\nTerminating execution...");
+        fs.writeFileSync("conf.json", JSON.stringify(emptyConfFile, null, "\t"));
+        process.exit(1)
         return true;
+    } else {
+        const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
+        updateConfig(config,emptyConfFile);
+        fs.writeFileSync("conf.json", JSON.stringify(emptyConfFile, null, "\t"));
     }
     return false;
+
+}
+function updateConfig(config, emptyConfFile) {
+    for (let k in config) {
+        emptyConfFile[k] = config[k];
+        //console.log(k, config[k]);
+        /*if (typeof config[k] === "object") {
+            updateConfig(config[k], emptyConfFile[k])
+        }*/
+    }
 }
 process.on('uncaughtException', function (err) {
     console.error("Uncaught Exception", err.message, err.stack)
