@@ -1,7 +1,7 @@
 $(document).ready(() => {
     send_request("/api/getAllMissions" + location.pathname, "GET", null, (data) => {
         const jsonData = JSON.parse(data);
-        
+
         for (let m of jsonData) {
             let missionDate = new Date(m.missionInputData.MissionDateandTime)
             $("#missionSelection").append("<option value=\"" + m._id + "\">" + toUpperFirstChar(m.missionInputData.MissionName) + ": " + missionDate.toLocaleDateString("it-IT", {}) + "</option>");
@@ -15,11 +15,12 @@ $(document).ready(() => {
                 $("#tableContainer").find("table").remove();
                 createTable(jsonData.parsedMiz, jsonData._id, "blue/red")
                 //createTable(jsonData.parsedMiz.red, "red")
+                rightMouseButtonEvt();
             });
         })
         $("#missionSelection option:eq(1)").prop('selected', true)
         $("#missionSelection").trigger("change")
-        if(jsonData.length<=1) $("#missionSelection").attr("disabled","disabled");
+        if (jsonData.length <= 1) $("#missionSelection").attr("disabled", "disabled");
     })
 })
 
@@ -172,3 +173,10 @@ function recursiveCellCreator(k, v) {
 
 function count(obj) { return Object.keys(obj).length; }
 function isObject(elm) { return (typeof elm === 'object' && elm !== null) }
+
+function rightMouseButtonEvt() {
+    $(".playerContainer").bind("contextmenu", function (e) {
+        console.warn(e);
+        return false;
+    });
+}

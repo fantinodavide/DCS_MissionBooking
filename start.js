@@ -824,12 +824,12 @@ function extendLogging() {
     const consoleLogBackup = console.log;
     const consoleErrorBackup = console.error;
     console.log = (...params) => {
-        consoleLogBackup(params);
-        logger.trace(params)
+        consoleLogBackup(...params);
+        logger.trace(...params)
     }
     console.error = (...params) => {
-        consoleErrorBackup(params);
-        logger.error(params)
+        consoleErrorBackup(...params);
+        logger.error(...params)
     }
 }
 async function verifyArgon2(hash, comp, callback) {

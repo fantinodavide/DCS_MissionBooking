@@ -1,3 +1,5 @@
+const requestTestParseMission = false;
+
 $(document).ready(() => {
     console.log("Admin");
 
@@ -13,17 +15,17 @@ $(document).ready(() => {
             let sender = snd.target;
             let missionName = sender.options[sender.selectedIndex].innerHTML;
             inputPopup(missionName, [["Mission Name", "Mission Date and Time"], ["text", "datetime-local"]], (json, getPointerCampo, close) => {
-                let dt = {missionFile: $("#missionSelection").val(), missionInputData: JSON.parse(json)};
+                let dt = { missionFile: $("#missionSelection").val(), missionInputData: JSON.parse(json) };
                 console.log(dt);
                 let rq = sendRequestNoCallback("/api/admin/publishMission", "POST", dt);
                 console.log(rq);
-                rq.done((data,status,xhr)=>{
-                    console.log(data,status,xhr);
+                rq.done((data, status, xhr) => {
+                    console.log(data, status, xhr);
                     close();
                     console.log("");
                     //if(status==200)
                 })
-                rq.fail((data,status,xhr)=>{
+                rq.fail((data, status, xhr) => {
                 })
                 /*rq.error((err)=>{
                     console.error(data);
@@ -31,9 +33,10 @@ $(document).ready(() => {
             }, "Pubblica")
         })
 
-        send_request("/api/admin/testParseMission", "GET", null, (data) => {
-            
-        })
+        if (requestTestParseMission) {
+            send_request("/api/admin/testParseMission", "GET", null, (data) => {
+            })
+        }
         /*$("#btnPubMission").on("click", () => {
             $("#inpMissionData").find("input").each((key, elm) => {
                 //  if(this != elm)
