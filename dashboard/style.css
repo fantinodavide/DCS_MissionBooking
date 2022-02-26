@@ -33,10 +33,12 @@ select {
     margin: 10px 0;
     //width: 100%;
 }
-select:disabled{
+
+select:disabled {
     opacity: 1;
 }
-select:disabled:hover{
+
+select:disabled:hover {
     background-color: var(--bgColor2);
 }
 
@@ -173,7 +175,7 @@ th:last-of-type {
 
 .playerContainer:hover {
     transform: scale(0.90);
-    
+
 }
 
 .playerContainer.multicrew {
@@ -182,13 +184,15 @@ th:last-of-type {
 
 .playerContainer.multicrew:hover {
     transform: scale(0.83);
-    
+
 }
+
 .playerContainer.booked {
     transform: scale(1);
     //cursor: default;
-    
+
 }
+
 .playerContainer.multicrew.booked {
     transform: scale(0.95);
 }
@@ -200,7 +204,8 @@ th:last-of-type {
 .playerContainer.red {
     border-left: solid 5px #c55;
 }
-.playerContainer.singleSlot{
+
+.playerContainer.singleSlot {
     padding-top: 15px;
     padding-bottom: 15px;
 }
@@ -433,4 +438,38 @@ select:-webkit-autofill:focus {
     border: none !important;
     -webkit-text-fill-color: var(--txtColor) !important;
     -webkit-box-shadow: 0 0 0px 1000px var(--bgColor1) inset !important;
+}
+
+#contextMenu {
+    position: fixed;
+    background: var(--bgColor2);
+    border-radius: 15px;
+    display: flex;
+    min-width: 200px;
+    box-shadow: 2px 0px 10px 0 #0008;
+    flex-direction: column;
+    padding: 5px 0;
+    color: var(--txtColor);
+    transform-origin: top left;
+    transform: scale(0);
+    transition: none;
+    transition: transform 150ms ease-in-out;
+}
+#contextMenu button{
+    padding: 10px 15px;
+    border-radius: 15px;
+    color: inherit;
+    margin: 0;
+    background: inherit;
+    box-shadow: none;
+    text-align: left;
+}
+#contextMenu button:hover{
+    box-shadow: 2px 0px 10px 0 #0005;
+    transform: scale(1.05);
+    z-index: 100;
+}
+#contextMenu.visible {
+    transform: scale(1);
+    transition: all 150ms ease-in-out;
 }

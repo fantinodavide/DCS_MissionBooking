@@ -22,6 +22,7 @@ $(document).ready(() => {
         $("#missionSelection").trigger("change")
         if (jsonData.length <= 1) $("#missionSelection").attr("disabled", "disabled");
     })
+    createContextMenu()
 })
 
 function login() {
@@ -90,6 +91,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                         if (unitsCount == 1) tdElm.addClass("singleSlot");
                         tdElm[0].playerBooked = playerBooked;
                         let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
+                        tdElm[0].flightRef = par;
 
                         if (!v.user_id || v.user_id == -1 || v.user_id == parseInt(getCookie("uid"))) {
                             tdElm.css("cursor", "pointer")
@@ -175,8 +177,48 @@ function count(obj) { return Object.keys(obj).length; }
 function isObject(elm) { return (typeof elm === 'object' && elm !== null) }
 
 function rightMouseButtonEvt() {
-    $(".playerContainer").bind("contextmenu", function (e) {
-        console.warn(e);
+    $("body").bind("contextmenu", function (e) {
+        contextMenu.removeClass("visible");
         return false;
     });
+    $("body").bind("click", function (e) {
+        contextMenu.removeClass("visible");
+        return false;
+    });
+    $(".playerContainer").bind("contextmenu", function (e) {
+        //console.warn(e);
+        contextMenu[0].senderElm = e.currentTarget;
+        contextMenu.css({
+            top: e.clientY,
+            left: e.clientX
+        })
+        setTimeout(()=>{
+            contextMenu.addClass("visible");
+        },10)
+        return false;
+    });
+}
+
+let contextMenu;
+function createContextMenu(){
+    contextMenu = $("<div id='contextMenu'></div>");
+    send_request("/api/getContextMenu","GET",{},(data)=>{
+        const jsonData = JSON.parse(data);
+        for(let b of jsonData){
+            let btn = $("<button>"+b.name+"</button>");
+            btn[0].customContext = b;
+            
+            btn.click((e)=>{
+                console.log(e.target.parentNode.senderElm);
+                let par = {...e.target.parentNode.senderElm.flightRef};
+                par.customContext = e.target.customContext;
+                console.log(par)
+                send_request(b.url,b.method,par,(data)=>{
+                    
+                })
+            })
+            contextMenu.append(btn)
+        }
+    })
+    $("body").append(contextMenu)
 }

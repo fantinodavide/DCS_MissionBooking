@@ -158,6 +158,18 @@ function start() {
             res.send({ status: "Ok" });
             restartProcess(req.query.delay ? req.query.delay : 0, 0);
         })
+        /*app.get("/api/contextMenuActions", (req, res, next) => {
+            const parm = req.query;
+            switch(parm.context.action){
+                case '':
+                    
+                    break;
+                default:
+                    res.sendStatus(400);
+                    break;
+            }
+            restartProcess(req.query.delay ? req.query.delay : 0, 0);
+        })*/
 
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
@@ -315,7 +327,7 @@ function start() {
                     if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
-                        if (slot.player && slot.player != "" && slot.user_id && slot.user_id == userId) {
+                        if (slot.player && slot.player != "" && ((slot.user_id && slot.user_id == userId) || (isAdmin(req) && parm.customContext.action == "force_dismission"))) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: -1 } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
@@ -367,7 +379,7 @@ function start() {
                         type: "redirect"
                     },
                     {
-                        name: "Update (Cur: V"+versionN+")",
+                        name: "Update (Cur: V" + versionN + ")",
                         url: "/api/admin/checkInstallUpdate",
                         order: 50,
                         type: "request"
@@ -375,6 +387,35 @@ function start() {
                 ])
             }
             res.send(retUrls);
+        })
+
+        app.get("/api/getContextMenu", (req, res, next) => {
+            let ret = [
+                {
+                    name: "Book Mission",
+                    action: "tg_bookmission",
+                    url: "/api/bookMission",
+                    method: "get",
+                    order: 0
+                }
+            ];
+            if (isAdmin(req)) {
+                ret = ret.concat([
+                    {
+                        name: "Toggle Priority",
+                        action: "tg_priority",
+                        order: 5
+                    },
+                    {
+                        name: "Force Dismission",
+                        action: "force_dismission",
+                        url: "/api/dismissMission",
+                        method: "get",
+                        order: 10
+                    }
+                ])
+            }
+            res.send(ret);
         })
         app.use((req, res, next) => {
             res.redirect("/");
