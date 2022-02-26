@@ -4,7 +4,7 @@ $(document).ready(() => {
 
         for (let m of jsonData) {
             let missionDate = new Date(m.missionInputData.MissionDateandTime)
-            $("#missionSelection").append("<option value=\"" + m._id + "\">" + toUpperFirstChar(m.missionInputData.MissionName) + ": " + missionDate.toLocaleDateString("it-IT", {}) + "</option>");
+            $("#missionSelection").append("<option value=\"" + m._id + "\">" + toUpperFirstChar(m.missionInputData.MissionName) + ": " + missionDate.toLocaleString("it-IT", {}) + "</option>");
         }
         $("#missionSelection").on("change", (e) => {
             let missionId = e.target.value;
@@ -86,7 +86,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                         let playerBooked = v.player && v.player != "";
                         let aircraftN = v.slotN ? v.slotN : k;
                         if (aircraftN > 10) aircraftN = (aircraftN / 10);
-                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + aircraftN + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
+                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + (v.priority ? "priority" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + aircraftN + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
                         if (v.multicrew) tdElm.addClass("multicrew");
                         if (unitsCount == 1) tdElm.addClass("singleSlot");
                         tdElm[0].playerBooked = playerBooked;
@@ -182,8 +182,9 @@ function rightMouseButtonEvt() {
         return false;
     });
     $("body").bind("click", function (e) {
-        contextMenu.removeClass("visible");
-        return false;
+        if (!contextMenu.find(e.target)[0]) {
+            contextMenu.close();
+        }
     });
     $(".playerContainer").bind("contextmenu", function (e) {
         //console.warn(e);
@@ -192,33 +193,48 @@ function rightMouseButtonEvt() {
             top: e.clientY,
             left: e.clientX
         })
-        setTimeout(()=>{
+        setTimeout(() => {
             contextMenu.addClass("visible");
-        },10)
+        }, 10)
         return false;
     });
 }
 
 let contextMenu;
-function createContextMenu(){
+function createContextMenu() {
     contextMenu = $("<div id='contextMenu'></div>");
-    send_request("/api/getContextMenu","GET",{},(data)=>{
+    send_request("/api/getContextMenu", "GET", {}, (data) => {
         const jsonData = JSON.parse(data);
-        for(let b of jsonData){
-            let btn = $("<button>"+b.name+"</button>");
+        for (let b of jsonData) {
+            let btn = $("<button>" + b.name + "</button>");
             btn[0].customContext = b;
-            
-            btn.click((e)=>{
-                console.log(e.target.parentNode.senderElm);
-                let par = {...e.target.parentNode.senderElm.flightRef};
+
+            btn.click((e) => {
+                const sender = e.target.parentNode.senderElm;
+                let par = { ...sender.flightRef };
+                console.log(par);
                 par.customContext = e.target.customContext;
-                console.log(par)
-                send_request(b.url,b.method,par,(data)=>{
-                    
+                $(e.target).addClass("request waiting")
+                send_request(b.url, b.method, par, (data) => {
+                    $(e.target).addClass("success")
+                    $(e.target).removeClass("waiting")
+                    const jsonData = JSON.parse(data);
+                    //$(sender).find(".playerNameContainer").html(jsonData.playerName)
+                    contextMenu.close(500);
+                },false,()=>{
+                    $(e.target).addClass("fail")
+                    $(e.target).removeClass("waiting")
+                    contextMenu.close(500);
                 })
             })
             contextMenu.append(btn)
         }
     })
+    contextMenu.close = (timeout = 0)=>{
+        setTimeout(()=>{
+            contextMenu.removeClass("visible");
+            contextMenu.find("button").removeClass("request waiting success fail");
+        },timeout)
+    }
     $("body").append(contextMenu)
 }

@@ -1,4 +1,4 @@
-function send_request(url, method, parameters, callback, forcecallback = false) {
+function send_request(url, method, parameters, callback, forcecallback = false, errorCallback = null) {
 	//alert(JSON.stringify(parameters) + " - Method: " + method);
 	let sendDt = parameters != null ? parameters : {};
 	//sendDt.stok = localStorage.getItem("stok");
@@ -32,7 +32,8 @@ function send_request(url, method, parameters, callback, forcecallback = false) 
 			}
 		},
 		error: function (jqXHR, test_status, str_error) {
-			console.error(url, str_error);
+			if (errorCallback) errorCallback();
+			else console.error(url, str_error);
 		}
 	});
 }

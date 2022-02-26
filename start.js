@@ -170,7 +170,24 @@ function start() {
             }
             restartProcess(req.query.delay ? req.query.delay : 0, 0);
         })*/
+        app.get('/api/admin/setPriority', function (req, res, next) {
+            const parm = req.query;
 
+            mongoConn((dbo) => {
+                //log(req.query);
+
+                let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
+                let update = findStr + ".priority";
+                
+                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseBool(parm.customContext.priority)} }, (err, dbRes) => {
+                    if (err) serverError(err);
+                    else {
+                        res.send({ priority: parm.customContext.priority})
+                    }
+                })
+            });
+        })
+        
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
             //log(parm);
@@ -240,8 +257,9 @@ function start() {
         app.get('/api/getAllMissions/:sel?/:mission_id?', function (req, res, next) {
             const missionId = req.params.mission_id;
             const find = req.params.sel == "m" ? { _id: ObjectID(missionId) } : {};
+            const recordsLimit = req.params.recordsLimit?req.params.recordsLimit:10;
             mongoConn((dbo) => {
-                dbo.collection("missions").find(find, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(10).toArray((err, dbRes) => {
+                dbo.collection("missions").find(find, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(recordsLimit).toArray((err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         res.send(dbRes);
@@ -296,7 +314,7 @@ function start() {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
-                                    res.send({ playerName: playerName })
+                                    res.send({ playerName: playerName})
                                 }
                             })
                         } else {
@@ -331,7 +349,7 @@ function start() {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: -1 } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
-                                    res.send({ removed: "ok" })
+                                    res.send({ removed: "ok", playerName: ""})
                                 }
                             })
                         } else {
@@ -402,9 +420,18 @@ function start() {
             if (isAdmin(req)) {
                 ret = ret.concat([
                     {
-                        name: "Toggle Priority",
+                        name: "Priority ON",
                         action: "tg_priority",
+                        priority: true,
+                        url: "/api/admin/setPriority",
                         order: 5
+                    },
+                    {
+                        name: "Priority OFF",
+                        action: "tg_priority",
+                        priority: false,
+                        url: "/api/admin/setPriority",
+                        order: 6
                     },
                     {
                         name: "Force Dismission",
@@ -963,4 +990,7 @@ async function verifyArgon2(hash, comp, callback) {
 }
 function length(obj) {
     return Object.keys(obj).length;
+}
+function parseBool(str){
+    return (str === 'true')
 }

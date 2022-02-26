@@ -218,6 +218,36 @@ th:last-of-type {
     color: #eee;
 }
 
+.playerContainer.priority .inFlightNumber {
+    //background: #c66;
+}
+
+.playerContainer.priority {
+    border-bottom: 3px solid #c55;
+    //animation: pulseShadow 0.5s ease-in-out 0s infinite alternate;
+    animation: pulseBorderBottom 0.5s ease-in-out 0s infinite alternate;
+}
+
+@keyframes pulseBorderBottom {
+    0% {
+        border-bottom: 3px solid #c558;
+    }
+
+    100% {
+        border-bottom: 3px solid #c55b;
+    }
+}
+
+@keyframes pulseShadow {
+    0% {
+        box-shadow: 0 0 8px 0 #f003;
+    }
+
+    100% {
+        box-shadow: 0 0 8px 0 #f006;
+    }
+}
+
 .flightContainer {
     position: absolute;
     display: flex;
@@ -455,8 +485,10 @@ select:-webkit-autofill:focus {
     transition: none;
     transition: transform 150ms ease-in-out;
 }
-#contextMenu button{
+
+#contextMenu button {
     padding: 10px 15px;
+    padding-right: 30px;
     border-radius: 15px;
     color: inherit;
     margin: 0;
@@ -464,12 +496,155 @@ select:-webkit-autofill:focus {
     box-shadow: none;
     text-align: left;
 }
-#contextMenu button:hover{
+
+#contextMenu button:hover {
     box-shadow: 2px 0px 10px 0 #0005;
     transform: scale(1.05);
     z-index: 100;
 }
+
 #contextMenu.visible {
     transform: scale(1);
     transition: all 150ms ease-in-out;
+}
+
+#contextMenu button.request::after,
+#contextMenu button.request::before {
+    content: "";
+    position: absolute;
+    top: calc(50% - 6px);
+    right: 10px;
+    height: 10px;
+    width: 10px;
+    background: #fff0;
+    border: 2px solid #0000;
+    overflow: hidden;
+}
+
+#contextMenu button.request.bgWhite::after {
+    background: #fff;
+}
+
+#contextMenu button.request.waiting::after {
+    border-radius: 100px;
+    border-top: 2px solid var(--txtColor1);
+    border-bottom: 2px solid var(--txtColor1);
+    animation: rotation 2s linear 0s infinite forwards;
+}
+
+#contextMenu button.request.success::after,
+#contextMenu button.request.success::before {
+    top: calc(50% - 5px);
+    right: 11px;
+    border: none;
+    width: 2px;
+    height: 12px;
+    border-radius: 3px;
+    background: #6b6;
+    transform: rotate(40deg);
+}
+
+#contextMenu button.request.success::before {
+    top: calc(50% - 0px);
+    right: 16px;
+    height: 6px;
+    transform: rotate(-35deg);
+}
+
+#contextMenu button.request.fail::after,
+#contextMenu button.request.fail::before {
+    top: calc(50% - 6px);
+    right: 15px;
+    border-radius: 3px;
+    border: none;
+    width: 2px;
+    height: 12px;
+    background: #c55;
+    transform: rotate(45deg);
+}
+
+#contextMenu button.request.fail::before {
+    transform: rotate(-45deg);
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#missionManagementCont {
+    display: flex;
+    flex-direction: column;
+}
+
+.missionDataContainer {
+    margin: 5px 10px;
+    border-radius: 15px;
+    background: var(--bgColor2);
+    padding: 5px 15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.missionDataContainer>span {
+    margin: 10px 0;
+}
+
+.missionDataContainer button,
+.missionDataContainer a {
+    padding: 10px;
+    margin: 0px !important;
+    margin-right: 10px !important;
+    border-radius: 100px;
+    justify-self: flex-end;
+}
+
+.missionDataContainer button.circular,
+.missionDataContainer a.circular,
+.missionDataContainer button.trash {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background: var(--accentColor);
+}
+
+.missionDataContainer button.trash {
+    background: #c44;
+    color: var(--txtColor);
+}
+
+.missionDataContainer button img,
+.missionDataContainer a img {
+    filter: invert(1);
+    height: 20px;
+}
+
+.missionDataContainer button:hover,
+.missionDataContainer a:hover {
+    opacity: 0.8;
+}
+
+.missionDataContainer>* {
+    margin-right: 10px !important;
+}
+
+.missionDataContainer .btnContainer {
+    margin: 0 !important;
+    margin-left: auto !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.missionDataContainer *:last-child{
+    margin-right: 0 !important;
 }

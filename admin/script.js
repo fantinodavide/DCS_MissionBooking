@@ -22,7 +22,7 @@ $(document).ready(() => {
                 rq.done((data, status, xhr) => {
                     console.log(data, status, xhr);
                     close();
-                    console.log("");
+                    getMissionsList();
                     //if(status==200)
                 })
                 rq.fail((data, status, xhr) => {
@@ -32,6 +32,9 @@ $(document).ready(() => {
                 })*/
             }, "Pubblica")
         })
+
+        getMissionsList()
+
 
         if (requestTestParseMission) {
             send_request("/api/admin/testParseMission", "GET", null, (data) => {
@@ -53,3 +56,37 @@ $(document).ready(() => {
         })*/
     })
 })
+
+function getMissionsList(recordsLimit = 30) {
+    send_request("/api/getAllMissions", "GET", { recordsLimit: recordsLimit }, (data) => {
+        const jsonData = JSON.parse(data);
+        $("#missionManagementCont").find(".missionDataContainer").remove();
+        for (let m of jsonData) {
+            let missionDate = new Date(m.missionInputData.MissionDateandTime)
+
+            let mCont = $("<div class='missionDataContainer'></div>");
+            let nameSpan = $("<span class='missionName'>" + m.missionInputData.MissionName + "</span>");
+            let dateSpan = $("<span class='missionDate'>" + missionDate.toLocaleString() + "</span>");
+            let btnCont = $("<div class='btnContainer'></div>")
+            let delBtn = $('<button class="trash"><img src="https://icons.getbootstrap.com/assets/icons/trash-fill.svg" alt=""></button>');
+            let uniqueLinkBtn = $("<a class='circular' href=\"/m/" + m._id + "\"><img src='https://icons.getbootstrap.com/assets/icons/link-45deg.svg'></a>");
+            delBtn[0].mission_id = m._id;
+
+            delBtn.click((e) => {
+                console.log(e);
+                inputPopup("Eliminare " + m.missionInputData.MissionName + "?", [[], []], (json, getPointerCampo, close) => {
+                    send_request("/api/admin/removeMission", "GET", { mission_id: e.currentTarget.mission_id }, (data) => {
+                        if (data == e.currentTarget.mission_id) {
+                            close();
+                            getMissionsList();
+                        };
+                    })
+                }, "Elimina")
+            })
+
+            btnCont.append(uniqueLinkBtn, delBtn)
+            mCont.append(nameSpan, dateSpan, btnCont)
+            $("#missionManagementCont").append(mCont)
+        }
+    })
+}
