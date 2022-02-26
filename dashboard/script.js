@@ -4,7 +4,7 @@ $(document).ready(() => {
 
         for (let m of jsonData) {
             let missionDate = new Date(m.missionInputData.MissionDateandTime)
-            $("#missionSelection").append("<option value=\"" + m._id + "\">" + toUpperFirstChar(m.missionInputData.MissionName) + ": " + missionDate.toLocaleString("it-IT", {}) + "</option>");
+            $("#missionSelection").append("<option value=\"" + m._id + "\">" + toUpperFirstChar(m.missionInputData.MissionName) + ": " + missionDate.toLocaleString("it-IT",{dateStyle:"short", timeStyle:"short"}) + "</option>");
         }
         $("#missionSelection").on("change", (e) => {
             let missionId = e.target.value;

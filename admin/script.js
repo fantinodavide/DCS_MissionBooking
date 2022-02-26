@@ -66,7 +66,7 @@ function getMissionsList(recordsLimit = 30) {
 
             let mCont = $("<div class='missionDataContainer'></div>");
             let nameSpan = $("<span class='missionName'>" + m.missionInputData.MissionName + "</span>");
-            let dateSpan = $("<span class='missionDate'>" + missionDate.toLocaleString() + "</span>");
+            let dateSpan = $("<span class='missionDate'>" + missionDate.toLocaleString("it-IT",{dateStyle:"short", timeStyle:"short"}) + "</span>");
             let btnCont = $("<div class='btnContainer'></div>")
             let delBtn = $('<button class="trash"><img src="https://icons.getbootstrap.com/assets/icons/trash-fill.svg" alt=""></button>');
             let uniqueLinkBtn = $("<a class='circular' href=\"/m/" + m._id + "\"><img src='https://icons.getbootstrap.com/assets/icons/link-45deg.svg'></a>");
