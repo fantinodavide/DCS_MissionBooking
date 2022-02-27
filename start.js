@@ -1,4 +1,4 @@
-const versionN = "1.31";
+const versionN = "1.32";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -187,7 +187,24 @@ function start() {
                 })
             });
         })
-        
+        app.get('/api/admin/setAttribute', function (req, res, next) {
+            const parm = req.query;
+
+            mongoConn((dbo) => {
+                //log(req.query);
+
+                let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
+                let update = findStr + "." + parm.customContext.attr;
+                
+                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseBool(parm.customContext.value)} }, (err, dbRes) => {
+                    if (err) serverError(err);
+                    else {
+                        res.send({ priority: parm.customContext.priority})
+                    }
+                })
+            });
+        })
+
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
             //log(parm);
@@ -310,7 +327,7 @@ function start() {
                     if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
-                        if (!slot.user_id || slot.user_id == -1) {
+                        if ((!slot.user_id || slot.user_id == -1) && !slot.reserved) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
@@ -434,11 +451,27 @@ function start() {
                         order: 6
                     },
                     {
+                        name: "Reserve ON",
+                        action: "tg_reserve",
+                        attr: "reserved",
+                        value: true,
+                        url: "/api/admin/setAttribute",
+                        order: 6
+                    },
+                    {
+                        name: "Reserve OFF",
+                        action: "tg_reserve",
+                        attr: "reserved",
+                        value: false,
+                        url: "/api/admin/setAttribute",
+                        order: 6
+                    },
+                    {
                         name: "Force Dismission",
                         action: "force_dismission",
                         url: "/api/dismissMission",
                         method: "get",
-                        order: 10
+                        order: 15
                     }
                 ])
             }

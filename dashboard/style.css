@@ -5,6 +5,7 @@
     --bgColor4: #1c1c1c;
     --txtColor: #fff;
     --accentColor: #f60;
+    --sideColor: #000;
 }
 
 * {
@@ -171,6 +172,7 @@ th:last-of-type {
     white-space: nowrap;
     text-overflow: clip;
     overflow: hidden;
+    border-left: solid 5px var(--sideColor);
 }
 
 .playerContainer:hover {
@@ -198,11 +200,11 @@ th:last-of-type {
 }
 
 .playerContainer.blue {
-    border-left: solid 5px #45c;
+    --sideColor: #45c;
 }
 
 .playerContainer.red {
-    border-left: solid 5px #c55;
+    --sideColor: #c55;
 }
 
 .playerContainer.singleSlot {
@@ -222,10 +224,48 @@ th:last-of-type {
     //background: #c66;
 }
 
+.playerContainer.reserved::after {
+    content: "Reserved";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-style: italic;
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
 .playerContainer.priority {
-    border-bottom: 3px solid #c55;
+    //animation: pulseBorderLeft 0.5s ease-in-out 0s infinite alternate;
     //animation: pulseShadow 0.5s ease-in-out 0s infinite alternate;
     animation: pulseBorderBottom 0.5s ease-in-out 0s infinite alternate;
+    //animation: pulseBackground 0.5s ease-in-out 0s infinite alternate;
+}
+
+@keyframes pulseBackground {
+    0% {
+        background: adjust-color(var(--bgColor3), lightness(+0%));
+    }
+
+    100% {
+        background: adjust-color(var(--bgColor3), lightness(+90%));
+    }
+}
+
+@keyframes pulseBorderLeft {
+    0% {
+        border-left-color: color-mod(var(--sideColor) lightness(62%));
+    }
+
+    100% {
+        border-left-color: rgba(var(--sideColor), 0.8);
+    }
 }
 
 @keyframes pulseBorderBottom {
@@ -645,6 +685,7 @@ select:-webkit-autofill:focus {
     flex-direction: row;
     align-items: center;
 }
-.missionDataContainer *:last-child{
+
+.missionDataContainer *:last-child {
     margin-right: 0 !important;
 }
