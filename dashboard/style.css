@@ -511,7 +511,7 @@ select:-webkit-autofill:focus {
 }
 
 #contextMenu {
-    position: fixed;
+    position: absolute;
     background: var(--bgColor2);
     border-radius: 15px;
     display: flex;

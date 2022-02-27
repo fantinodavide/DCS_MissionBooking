@@ -190,9 +190,12 @@ function rightMouseButtonEvt() {
     $(".playerContainer").bind("contextmenu", function (e) {
         //console.warn(e);
         contextMenu[0].senderElm = e.currentTarget;
+        const left = Math.min(e.pageX,($(window).width()-contextMenu.width()-10))
+        const top = Math.min(e.pageY,($(document).height()-contextMenu.height()-20));
+        console.log(e);
         contextMenu.css({
-            top: e.clientY,
-            left: e.clientX
+            top: top,
+            left: left
         })
         setTimeout(() => {
             contextMenu.addClass("visible");
