@@ -15,7 +15,8 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     transition: all 100ms ease-in-out;
-
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 body {

@@ -4,7 +4,7 @@ $(document).ready(() => {
 
         for (let m of jsonData) {
             let missionDate = new Date(m.missionInputData.MissionDateandTime)
-            $("#missionSelection").append("<option value=\"" + m._id + "\">" + toUpperFirstChar(m.missionInputData.MissionName) + ": " + missionDate.toLocaleString("it-IT",{dateStyle:"short", timeStyle:"short"}) + "</option>");
+            $("#missionSelection").append("<option value=\"" + m._id + "\">" + toUpperFirstChar(m.missionInputData.MissionName) + ": " + missionDate.toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) + "</option>");
         }
         $("#missionSelection").on("change", (e) => {
             let missionId = e.target.value;
@@ -187,11 +187,19 @@ function rightMouseButtonEvt() {
             contextMenu.close();
         }
     });
-    $(".playerContainer").bind("contextmenu", function (e) {
-        //console.warn(e);
+    $(".playerContainer").on("long-press", (e) => {
+        e.pageY = e.currentTarget.getBoundingClientRect().top + 20;
+        e.pageX = e.currentTarget.getBoundingClientRect().left + 20;
+        console.log("long", e);
+        openContextMenu(e);
+        return false;
+    })
+
+    $(".playerContainer").bind("contextmenu", openContextMenu);
+    function openContextMenu(e) {
         contextMenu[0].senderElm = e.currentTarget;
-        const left = Math.min(e.pageX,($(window).width()-contextMenu.width()-10))
-        const top = Math.min(e.pageY,($(document).height()-contextMenu.height()-20));
+        const left = Math.min(e.pageX, ($(window).width() - contextMenu.width() - 10))
+        const top = Math.min(e.pageY, ($(document).height() - contextMenu.height() - 20));
         console.log(e);
         contextMenu.css({
             top: top,
@@ -201,7 +209,7 @@ function rightMouseButtonEvt() {
             contextMenu.addClass("visible");
         }, 10)
         return false;
-    });
+    }
 }
 
 let contextMenu;
@@ -225,7 +233,7 @@ function createContextMenu() {
                     const jsonData = JSON.parse(data);
                     //$(sender).find(".playerNameContainer").html(jsonData.playerName)
                     contextMenu.close(500);
-                },false,()=>{
+                }, false, () => {
                     $(e.target).addClass("fail")
                     $(e.target).removeClass("waiting")
                     contextMenu.close(500);
@@ -234,11 +242,11 @@ function createContextMenu() {
             contextMenu.append(btn)
         }
     })
-    contextMenu.close = (timeout = 0)=>{
-        setTimeout(()=>{
+    contextMenu.close = (timeout = 0) => {
+        setTimeout(() => {
             contextMenu.removeClass("visible");
             contextMenu.find("button").removeClass("request waiting success fail");
-        },timeout)
+        }, timeout)
     }
     $("body").append(contextMenu)
 }
