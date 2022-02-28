@@ -15,8 +15,6 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     transition: all 100ms ease-in-out;
-    -webkit-user-select: none;
-    //-webkit-touch-callout: none;
 }
 
 body {
@@ -174,6 +172,8 @@ th:last-of-type {
     text-overflow: clip;
     overflow: hidden;
     border-left: solid 5px var(--sideColor);
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .playerContainer:hover {
