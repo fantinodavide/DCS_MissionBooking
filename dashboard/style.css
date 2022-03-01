@@ -249,13 +249,28 @@ th:last-of-type {
     //animation: pulseBackground 0.5s ease-in-out 0s infinite alternate;
 }
 
-@keyframes pulseBackground {
+.playerContainer.priority .inFlightNumber {
+    //animation: pulseNumber 0.5s ease-in-out 0s infinite alternate;
+
+}
+
+@keyframes pulseNumber {
     0% {
-        background: adjust-color(var(--bgColor3), lightness(+0%));
+        //background: inherit;
     }
 
     100% {
-        background: adjust-color(var(--bgColor3), lightness(+90%));
+        background: #fb0;
+    }
+}
+
+@keyframes pulseBackground {
+    0% {
+        background: var(--bgColor3);
+    }
+
+    100% {
+        background: #433;
     }
 }
 
@@ -271,21 +286,23 @@ th:last-of-type {
 
 @keyframes pulseBorderBottom {
     0% {
-        border-bottom: 3px solid #c558;
+        /*border-bottom: 3px solid #c558;*/
+        border-bottom: 3px solid #fb07;
     }
 
     100% {
-        border-bottom: 3px solid #c55b;
+        /*border-bottom: 3px solid #c55b;*/
+        border-bottom: 3px solid #fb09;
     }
 }
 
 @keyframes pulseShadow {
     0% {
-        box-shadow: 0 0 8px 0 #f003;
+        box-shadow: 0 0 8px 0 #f005;
     }
 
     100% {
-        box-shadow: 0 0 8px 0 #f006;
+        box-shadow: 0 0 8px 0 #f007;
     }
 }
 
