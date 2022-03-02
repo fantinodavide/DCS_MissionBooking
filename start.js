@@ -1,4 +1,4 @@
-const versionN = "1.40";
+const versionN = "1.41";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -48,48 +48,49 @@ function start() {
         const config = JSON.parse(fs.readFileSync("conf.json", "utf-8").toString());
         console.log(config);
 
-        checkUpdates(config.other.automatic_updates);
-
-        if (enableServer) {
-            const privKPath = 'certificates/privatekey.pem';
-            const certPath = 'certificates/certificate.pem';
-            if (fs.existsSync(privKPath) && fs.existsSync(certPath)) {
-                const httpsOptions = {
-                    key: fs.readFileSync(privKPath),
-                    cert: fs.readFileSync(certPath)
-                }
-                const server = https.createServer(httpsOptions, app);
-                server.listen(config.http_server.https_port);
-                //wss = new WebSocket.Server({ server });
-                console.log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
-                handleUpgrade(server);
-            } else {
-                const server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
-                    var host = server.address().address
-                    var port = server.address().port
-
-                    console.log("\HTTP server listening at http://%s:%s", host, port)
+        checkUpdates(config.other.automatic_updates, () => {
+            if (enableServer) {
+                const privKPath = 'certificates/privatekey.pem';
+                const certPath = 'certificates/certificate.pem';
+                if (fs.existsSync(privKPath) && fs.existsSync(certPath)) {
+                    const httpsOptions = {
+                        key: fs.readFileSync(privKPath),
+                        cert: fs.readFileSync(certPath)
+                    }
+                    const server = https.createServer(httpsOptions, app);
+                    server.listen(config.http_server.https_port);
+                    //wss = new WebSocket.Server({ server });
+                    console.log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
                     handleUpgrade(server);
-                })
-            }
-            wss = new WebSocket.Server({ noServer: true });
-            if (wss) console.log("WSS server listening")
-            wss.on('connection', function connection(ws, req, client) {
-                ws.on('message', function message(data) {
-                    console.log('WS received: ', data.toString(), client);
-                    wssBroadcast(data, ws);
-                });
-            });
-            function handleUpgrade(server) {
-                console.log("Setup server upgrade handling");
-                server.on('upgrade', (request, socket, head) => {
-                    wss.handleUpgrade(request, socket, head, (ws, request, client) => {
-                        wss.emit('connection', ws, request, client);
+                } else {
+                    const server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
+                        var host = server.address().address
+                        var port = server.address().port
+
+                        console.log("\HTTP server listening at http://%s:%s", host, port)
+                        handleUpgrade(server);
+                    })
+                }
+                wss = new WebSocket.Server({ noServer: true });
+                if (wss) console.log("WSS server listening")
+                wss.on('connection', function connection(ws, req, client) {
+                    ws.on('message', function message(data) {
+                        console.log('WS received: ', data.toString(), client);
+                        wssBroadcast(data, ws);
                     });
                 });
-            }
+                function handleUpgrade(server) {
+                    console.log("Setup server upgrade handling");
+                    server.on('upgrade', (request, socket, head) => {
+                        wss.handleUpgrade(request, socket, head, (ws, request, client) => {
+                            wss.emit('connection', ws, request, client);
+                        });
+                    });
+                }
 
-        }
+            }
+        });
+
 
         app.use(nocache());
         app.set('etag', false)
@@ -615,7 +616,7 @@ function start() {
                 return next();
         }
 
-        function checkUpdates(downloadInstallUpdate = false) {
+        function checkUpdates(downloadInstallUpdate = false, callback = null) {
             let releasesUrl = "https://api.github.com/repos/fantinodavide/DCS_MissionBooking/releases";
             let curDate = new Date();
             console.log("Current version: ", versionN, "\n > Checking for updates", curDate.toLocaleString());
@@ -635,10 +636,14 @@ function start() {
                         console.log("Update found: " + gitResData.tag_name, gitResData.name);
                         //if (updateFoundCallback) updateFoundCallback();
                         if (downloadInstallUpdate) downloadLatestUpdate(gitResData);
+                    } else {
+                        console.log(" > No updates found. Proceding startup");
+                        if (callback) callback();
                     }
                 })
                 .catch(err => {
-                    console.error("Couldn't check for updates");
+                    console.error(" > Couldn't check for updates. Proceding startup");
+                    if (callback) callback();
                 })
         }
 
