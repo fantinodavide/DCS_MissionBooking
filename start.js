@@ -1,4 +1,4 @@
-const versionN = "1.38";
+const versionN = "1.39";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -53,17 +53,18 @@ function start() {
         if (enableServer) {
             const privKPath = 'certificates/privatekey.pem';
             const certPath = 'certificates/certificate.pem';
+            var server;
             if (fs.existsSync(privKPath) && fs.existsSync(certPath)) {
                 const httpsOptions = {
                     key: fs.readFileSync(privKPath),
                     cert: fs.readFileSync(certPath)
                 }
-                const server = https.createServer(httpsOptions, app);
+                server = https.createServer(httpsOptions, app);
                 server.listen(config.http_server.https_port);
                 //wss = new WebSocket.Server({ server });
                 console.log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
             } else {
-                var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
+                server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
                     var host = server.address().address
                     var port = server.address().port
 
@@ -1008,9 +1009,9 @@ function updateConfig(config, emptyConfFile) {
 }
 process.on('uncaughtException', function (err) {
     console.error("Uncaught Exception", err.message, err.stack)
-    if (++errorCount >= 10) {
+    if (++errorCount >= 20) {
         console.error("Too many errors occurred during the current run. Terminating execution...");
-        restartProcess(0, 1);
+        restartProcess(0, 0);
     }
 })
 function randomString(size = 64) {
