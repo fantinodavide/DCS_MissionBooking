@@ -321,3 +321,18 @@ function isEqualsJson(obj1, obj2) {
     //return true when the two json has same length and all the properties has same value key by key
     return keys1.length == keys2.length && Object.keys(obj1).every(key => obj1[key] == obj2[key]);
 }
+function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}

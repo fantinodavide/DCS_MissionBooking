@@ -1,4 +1,4 @@
-const versionN = "1.39";
+const versionN = "1.40";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -53,22 +53,23 @@ function start() {
         if (enableServer) {
             const privKPath = 'certificates/privatekey.pem';
             const certPath = 'certificates/certificate.pem';
-            var server;
             if (fs.existsSync(privKPath) && fs.existsSync(certPath)) {
                 const httpsOptions = {
                     key: fs.readFileSync(privKPath),
                     cert: fs.readFileSync(certPath)
                 }
-                server = https.createServer(httpsOptions, app);
+                const server = https.createServer(httpsOptions, app);
                 server.listen(config.http_server.https_port);
                 //wss = new WebSocket.Server({ server });
                 console.log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
+                handleUpgrade(server);
             } else {
-                server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
+                const server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
                     var host = server.address().address
                     var port = server.address().port
 
                     console.log("\HTTP server listening at http://%s:%s", host, port)
+                    handleUpgrade(server);
                 })
             }
             wss = new WebSocket.Server({ noServer: true });
@@ -79,11 +80,15 @@ function start() {
                     wssBroadcast(data, ws);
                 });
             });
-            server.on('upgrade', function upgrade(request, socket, head) {
-                wss.handleUpgrade(request, socket, head, function done(ws, request, client) {
-                    wss.emit('connection', ws, request, client);
+            function handleUpgrade(server) {
+                console.log("Setup server upgrade handling");
+                server.on('upgrade', (request, socket, head) => {
+                    wss.handleUpgrade(request, socket, head, (ws, request, client) => {
+                        wss.emit('connection', ws, request, client);
+                    });
                 });
-            });
+            }
+
         }
 
         app.use(nocache());
@@ -349,7 +354,7 @@ function start() {
                                 if (err) serverError(err);
                                 else {
                                     res.send({ playerName: playerName })
-                                    wssBroadcast({action: "booking", slotData: parm, playerName: playerName})
+                                    wssBroadcast({ action: "booking", slotData: parm, playerName: playerName })
                                 }
                             })
                         } else {
@@ -385,7 +390,7 @@ function start() {
                                 if (err) serverError(err);
                                 else {
                                     res.send({ removed: "ok", playerName: "" })
-                                    wssBroadcast({action: "dissmission", slotData: parm})
+                                    wssBroadcast({ action: "dissmission", slotData: parm })
                                 }
                             })
                         } else {
@@ -613,7 +618,7 @@ function start() {
         function checkUpdates(downloadInstallUpdate = false) {
             let releasesUrl = "https://api.github.com/repos/fantinodavide/DCS_MissionBooking/releases";
             let curDate = new Date();
-            console.log("Checking for updates", curDate.toLocaleString());
+            console.log("Current version: ", versionN, "\n > Checking for updates", curDate.toLocaleString());
             axios
                 .get(releasesUrl)
                 .then(res => {
