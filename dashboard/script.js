@@ -100,9 +100,9 @@ function createTable(parsedMiz, missionId, sideFilter) {
                             tdElm.css("cursor", "pointer")
                             tdElm.click(() => {
                                 if (!tdElm[0].playerBooked) {
-                                    _bookMission(par);
+                                    _bookMission(tdElm[0]);
                                 } else {
-                                    _dismissMission(par);
+                                    _dismissMission(tdElm[0]);
                                 }
                             })
                             if (v.user_id == parseInt(getCookie("uid"))) {
@@ -111,13 +111,14 @@ function createTable(parsedMiz, missionId, sideFilter) {
                             }
                         }
 
-                        function _bookMission(par) {
+                        function _bookMission(mizElm) {
+                            let par = mizElm.flightRef;
                             /*console.log("[EVT SET] Book mission");
                             tdElm.click(() => {*/
                             console.log("just at booking ", myBookedMissions);
 
                             for (let t of myBookedMissions) {
-                                if (t != null) {
+                                if (t != null && t.playerBooked) {
                                     console.log(t);
                                     _dismissMission(t);
                                 }
@@ -129,10 +130,9 @@ function createTable(parsedMiz, missionId, sideFilter) {
                                 grBook(tdElm[0], jsonData.playerName)
                                 //myBookedMissions.push(tdElm)
                             })
-                            //})
                         }
-                        function _dismissMission(miz) {
-                            let par = miz.flightRef;
+                        function _dismissMission(mizElm) {
+                            let par = mizElm.flightRef;
                             /*console.log("[EVT SET] Dismiss mission");
                             tdElm.click(() => {*/
                             if (myBookedMissions.indexOf(tdElm[0]) >= 0) myBookedMissions[myBookedMissions.indexOf(tdElm[0])] = null;
@@ -141,7 +141,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                                 const jsonData = JSON.parse(data);
                                 //console.log(jsonData);
                                 if (jsonData.removed == "ok") {
-                                    grDismiss(miz);
+                                    grDismiss(mizElm);
                                 }
                             })
                             //})
