@@ -21,6 +21,7 @@ const { application } = require("express");
 const nocache = require('nocache');
 const axios = require('axios');
 const log4js = require('log4js');
+const WebSocket = require('ws');
 
 const enableServer = true;
 var errorCount = 0;
@@ -35,10 +36,10 @@ log4js.configure({
     appenders: { App: { type: "file", filename: logFile } },
     categories: { default: { appenders: ["App"], level: "all" } }
 });
-
 const logger = log4js.getLogger("App");
-
 extendLogging()
+
+var wss;
 
 start();
 
@@ -57,7 +58,9 @@ function start() {
                     key: fs.readFileSync(privKPath),
                     cert: fs.readFileSync(certPath)
                 }
-                https.createServer(httpsOptions, app).listen(config.http_server.https_port);
+                const server = https.createServer(httpsOptions, app);
+                server.listen(config.http_server.https_port);
+                //wss = new WebSocket.Server({ server });
                 console.log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
             } else {
                 var server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
@@ -67,6 +70,19 @@ function start() {
                     console.log("\HTTP server listening at http://%s:%s", host, port)
                 })
             }
+            wss = new WebSocket.Server({ noServer: true });
+            if (wss) console.log("WSS server listening")
+            wss.on('connection', function connection(ws, req, client) {
+                ws.on('message', function message(data) {
+                    console.log('WS received: ', data.toString(), client);
+                    wssBroadcast(data, ws);
+                });
+            });
+            server.on('upgrade', function upgrade(request, socket, head) {
+                wss.handleUpgrade(request, socket, head, function done(ws, request, client) {
+                    wss.emit('connection', ws, request, client);
+                });
+            });
         }
 
         app.use(nocache());
@@ -178,11 +194,11 @@ function start() {
 
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + ".priority";
-                
-                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseBool(parm.customContext.priority)} }, (err, dbRes) => {
+
+                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseBool(parm.customContext.priority) } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
-                        res.send({ priority: parm.customContext.priority})
+                        res.send({ priority: parm.customContext.priority })
                     }
                 })
             });
@@ -195,11 +211,11 @@ function start() {
 
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + "." + parm.customContext.attr;
-                
-                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseBool(parm.customContext.value)} }, (err, dbRes) => {
+
+                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseBool(parm.customContext.value) } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
-                        res.send({ priority: parm.customContext.priority})
+                        res.send({ priority: parm.customContext.priority })
                     }
                 })
             });
@@ -274,7 +290,7 @@ function start() {
         app.get('/api/getAllMissions/:sel?/:mission_id?', function (req, res, next) {
             const missionId = req.params.mission_id;
             const find = req.params.sel == "m" ? { _id: ObjectID(missionId) } : {};
-            const recordsLimit = req.params.recordsLimit?req.params.recordsLimit:10;
+            const recordsLimit = req.params.recordsLimit ? req.params.recordsLimit : 10;
             mongoConn((dbo) => {
                 dbo.collection("missions").find(find, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(recordsLimit).toArray((err, dbRes) => {
                     if (err) serverError(err);
@@ -331,7 +347,8 @@ function start() {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
-                                    res.send({ playerName: playerName})
+                                    res.send({ playerName: playerName })
+                                    wssBroadcast({action: "booking", slotData: parm, playerName: playerName})
                                 }
                             })
                         } else {
@@ -366,7 +383,8 @@ function start() {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: -1 } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
-                                    res.send({ removed: "ok", playerName: ""})
+                                    res.send({ removed: "ok", playerName: "" })
+                                    wssBroadcast({action: "dissmission", slotData: parm})
                                 }
                             })
                         } else {
@@ -1024,6 +1042,15 @@ async function verifyArgon2(hash, comp, callback) {
 function length(obj) {
     return Object.keys(obj).length;
 }
-function parseBool(str){
+function parseBool(str) {
     return (str === 'true')
+}
+
+function wssBroadcast(data, ws = null) {
+    console.log("WS Broadcast", data);
+    wss.clients.forEach(function each(client) {
+        if ((client !== ws) && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
 }

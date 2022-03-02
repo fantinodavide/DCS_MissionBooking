@@ -1,3 +1,4 @@
+const WS_URL = "w" + location.protocol.replace(/http/g, '').replace(/:/g, '') + "s:" + location.host;
 $(document).ready(() => {
     send_request("/api/getAllMissions" + location.pathname, "GET", null, (data) => {
         const jsonData = JSON.parse(data);
@@ -23,6 +24,8 @@ $(document).ready(() => {
         if (jsonData.length <= 1) $("#missionSelection").attr("disabled", "disabled");
     })
     createContextMenu()
+
+    startWebsocket();
 })
 
 function login() {
@@ -48,9 +51,9 @@ function login() {
     }, "Login", false);
 }
 
+let myBookedMissions = [];
 function createTable(parsedMiz, missionId, sideFilter) {
     let table = $("<table><tr><th>Flight</th><th>Task</th><th>Slots</th></tr></table>");
-    let myBookedMissions = [];
     //$(".mainContainer")
     Object.entries(parsedMiz).forEach(entry => {
         const [k, v] = entry;
@@ -63,7 +66,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                     table.append("<tr class='rowSpacer'></tr>");
                     const unitsCount = count(v.units);
                     let flightName = k;
-                    let row = $("<tr><td class='flightTD' rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.aircraftType.replace(/_50/g,'').replace(/_hornet/g,'') + "</span><span class='groupName'>" + (v.callsign && v.callsign.name ? (v.callsign.name) + "-" + v.callsign.group : k) + "</span></div></td></tr>");
+                    let row = $("<tr><td class='flightTD' rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.aircraftType.replace(/_50/g, '').replace(/_hornet/g, '') + "</span><span class='groupName'>" + (v.callsign && v.callsign.name ? (v.callsign.name) + "-" + v.callsign.group : k) + "</span></div></td></tr>");
                     table.append(row);
                     Object.entries(v).forEach(entry => {
                         const [k, v] = entry;
@@ -82,7 +85,6 @@ function createTable(parsedMiz, missionId, sideFilter) {
                     Object.entries(v.units).forEach(entry => {
                         const [k, v] = entry;
 
-                        let td = $("<td>" + v + "</td>");
                         let playerBooked = v.player && v.player != "";
                         let aircraftN = v.slotN ? v.slotN : k;
                         if (aircraftN > 10) aircraftN = (aircraftN / 10);
@@ -98,49 +100,48 @@ function createTable(parsedMiz, missionId, sideFilter) {
                             tdElm.css("cursor", "pointer")
                             tdElm.click(() => {
                                 if (!tdElm[0].playerBooked) {
-                                    _bookMission();
+                                    _bookMission(par);
                                 } else {
-                                    _dismissMission();
+                                    _dismissMission(par);
                                 }
                             })
                             if (v.user_id == parseInt(getCookie("uid"))) {
-                                myBookedMissions.push(tdElm);
+                                myBookedMissions.push(tdElm[0]);
 
                             }
                         }
 
-                        function _bookMission() {
+                        function _bookMission(par) {
                             /*console.log("[EVT SET] Book mission");
                             tdElm.click(() => {*/
+                            console.log("just at booking ", myBookedMissions);
+
                             for (let t of myBookedMissions) {
-                                if (t != null)
-                                    t.trigger("click");
+                                if (t != null) {
+                                    console.log(t);
+                                    _dismissMission(t);
+                                }
                             }
                             myBookedMissions = [];
                             console.log("Booking mission", par);
                             send_request("/api/bookMission", "GET", par, (data) => {
                                 const jsonData = JSON.parse(data);
-                                tdElm.addClass("booked");
-                                tdElm.find(".playerNameContainer").html(jsonData.playerName);
-                                tdElm[0].playerBooked = true;
-                                myBookedMissions.push(tdElm)
+                                grBook(tdElm[0], jsonData.playerName)
+                                //myBookedMissions.push(tdElm)
                             })
                             //})
                         }
-                        function _dismissMission() {
+                        function _dismissMission(miz) {
+                            let par = miz.flightRef;
                             /*console.log("[EVT SET] Dismiss mission");
                             tdElm.click(() => {*/
-                            myBookedMissions[myBookedMissions.indexOf(tdElm)] = null;
+                            if (myBookedMissions.indexOf(tdElm[0]) >= 0) myBookedMissions[myBookedMissions.indexOf(tdElm[0])] = null;
                             console.log("Dissmissing mission");
                             send_request("/api/dismissMission", "GET", par, (data) => {
                                 const jsonData = JSON.parse(data);
                                 //console.log(jsonData);
                                 if (jsonData.removed == "ok") {
-                                    tdElm.removeClass("booked");
-                                    tdElm[0].playerBooked = false;
-                                    setTimeout(() => {
-                                        tdElm.find(".playerNameContainer").html("");
-                                    }, 100)
+                                    grDismiss(miz);
                                 }
                             })
                             //})
@@ -173,7 +174,21 @@ function recursiveCellCreator(k, v) {
         });
     }
 }
-
+function grBook(miz, playerName) {
+    $(miz).addClass("booked");
+    $(miz).find(".playerNameContainer").html(playerName);
+    miz.playerBooked = true;
+    if (localStorage.username == playerName)
+        myBookedMissions.push(miz)
+}
+function grDismiss(miz) {
+    console.log(myBookedMissions);
+    $(miz).removeClass("booked");
+    miz.playerBooked = false;
+    setTimeout(() => {
+        $(miz).find(".playerNameContainer").html("");
+    }, 100)
+}
 function count(obj) { return Object.keys(obj).length; }
 function isObject(elm) { return (typeof elm === 'object' && elm !== null) }
 
@@ -249,4 +264,60 @@ function createContextMenu() {
         }, timeout)
     }
     $("body").append(contextMenu)
+}
+
+function startWebsocket() {
+    socket = new WebSocket(WS_URL);
+    socket.onopen = function (e) {
+        console.log("Websocket connected to ", "tomare");
+    };
+    socket.onmessage = (e) => {
+        //console.log(JSON.parse(e.data));
+        wsAction(JSON.parse(e.data));
+    }
+    socket.onclose = function (event) {
+        if (event.wasClean) {
+            console.log("[close] Connection closed cleanly, code=${event.code} reason=${event.reason}");
+        } else {
+            console.log("[close] Connection died");
+        }
+
+        setTimeout(function () {
+            startWebsocket();
+        }, 100)
+    };
+}
+
+function wsAction(jsonData) {
+    let tgCell;
+    $(".playerContainer").each((key, elm) => {
+        if (detectSlot(elm.flightRef, jsonData.slotData)) {
+            tgCell = elm
+        }
+    })
+    switch (jsonData.action) {
+        case "booking":
+            grBook(tgCell, jsonData.playerName);
+            break;
+        case "dissmission":
+            grDismiss(tgCell);
+            break;
+
+        default:
+            console.log("def", tgCell);
+            break;
+    }
+}
+
+function detectSlot(obj1, obj2) {
+    return (obj1.flight == obj2.flight && obj1.missionId == obj2.missionId && obj1.inflightNumber == obj2.inflightNumber && obj1.sideColor == obj2.sideColor && obj1.spec.parking == obj2.spec.parking);
+
+}
+function isEqualsJson(obj1, obj2) {
+    keys1 = Object.keys(JSON.parse(JSON.stringify(obj1)));
+    keys2 = Object.keys(JSON.parse(JSON.stringify(obj2)));
+    console.log(obj1, obj2);
+
+    //return true when the two json has same length and all the properties has same value key by key
+    return keys1.length == keys2.length && Object.keys(obj1).every(key => obj1[key] == obj2[key]);
 }
