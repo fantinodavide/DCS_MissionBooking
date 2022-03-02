@@ -115,21 +115,24 @@ function createTable(parsedMiz, missionId, sideFilter) {
                             let par = mizElm.flightRef;
                             /*console.log("[EVT SET] Book mission");
                             tdElm.click(() => {*/
-                            console.log("just at booking ", myBookedMissions);
-
-                            for (let t of myBookedMissions) {
-                                if (t != null && t.playerBooked) {
-                                    console.log(t);
-                                    _dismissMission(t);
+                            inputPopup("Conferma presa visione topic forum",[[],[]],(json, getPointerCampo, close) => {
+                                console.log(json);
+                                for (let t of myBookedMissions) {
+                                    if (t != null && t.playerBooked) {
+                                        console.log(t);
+                                        _dismissMission(t);
+                                    }
                                 }
-                            }
-                            myBookedMissions = [];
-                            console.log("Booking mission", par);
-                            send_request("/api/bookMission", "GET", par, (data) => {
-                                const jsonData = JSON.parse(data);
-                                grBook(tdElm[0], jsonData.playerName)
-                                //myBookedMissions.push(tdElm)
+                                myBookedMissions = [];
+                                console.log("Booking mission", par);
+                                close();
+                                send_request("/api/bookMission", "GET", par, (data) => {
+                                    const jsonData = JSON.parse(data);
+                                    grBook(tdElm[0], jsonData.playerName)
+                                    //myBookedMissions.push(tdElm)
+                                })
                             })
+
                         }
                         function _dismissMission(mizElm) {
                             let par = mizElm.flightRef;

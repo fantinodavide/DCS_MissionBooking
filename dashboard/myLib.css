@@ -19,7 +19,7 @@
     --accentColor: #f60;
 }
 
-*{
+* {
     padding: 0;
     margin: 0;
     font-family: arial;
@@ -27,25 +27,31 @@
     -webkit-tap-highlight-color: transparent;
 
 }
-*:focus{
+
+*:focus {
     outline: none;
 }
+
 ::-webkit-scrollbar {
     height: 5px;
     width: 10px;
 }
+
 ::-webkit-scrollbar-track {
     background: #333;
     border-radius: 2px;
 }
+
 ::-webkit-scrollbar-thumb {
     background: #555;
     border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
     background: #666;
 }
-button{
+
+button {
     /*display: flex;
     justify-content: center;
     align-items: center;*/
@@ -64,6 +70,7 @@ button{
     cursor: pointer;
     //transform: scale(1.05);
 }
+
 /*button::after{
     content: "\2713";
     position: absolute;
@@ -132,11 +139,11 @@ button:focus{
 #sideMenu a:hover{
    transform: scale(1.05);
 }*/
-.loginContainer{
+.loginContainer {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     //width: 300px;
     height: auto;
     padding: 25px 50px;
@@ -151,26 +158,34 @@ button:focus{
     opacity: 0;
     transition: all 150ms ease-in-out;
     color: var(--txtColor1);
+
+    /* min-width: 200px; */
+    max-width: calc(90% - 100px) !important;
+    width: fit-content;
 }
-.loginContainer legend{
+
+.loginContainer legend {
     font-size: 20px;
     width: auto;
     margin-left: 5px;
     padding: 0 3px;
 }
-fieldset{
+
+fieldset {
     height: 55px;
     border: 2px solid var(--txtColor1);
     transition: all 150ms ease-in-out;
 }
-.loginContainer fieldset{
+
+.loginContainer fieldset {
     margin-bottom: 15px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 5px;
 }
-.loginContainer fieldset input{
+
+.loginContainer fieldset input {
     width: 200px;
     border: none;
     padding: 5px;
@@ -178,21 +193,25 @@ fieldset{
     transition: all 150ms ease-in-out;
     color: var(--txtColor1);
 }
-.radioContainer{
+
+.radioContainer {
     display: flex;
     background: #f8f8f8;
     flex-shrink: 0;
 }
-.radioContainer.linear{
+
+.radioContainer.linear {
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
     justify-content: center;
 }
-.radioContainer input[type="radio"]{
+
+.radioContainer input[type="radio"] {
     display: none;
 }
-.radioContainer label{
+
+.radioContainer label {
     display: block;
     width: 100px;
     height: 40px;
@@ -206,17 +225,21 @@ fieldset{
     flex-grow: 1;
     padding: 0 10px;
 }
-.radioContainer label:hover{
+
+.radioContainer label:hover {
     background: #eee;
 }
-.radioContainer label.sel{
+
+.radioContainer label.sel {
     background: var(--color2);
     color: var(--txtColor1);
 }
-.radioContainer button{
+
+.radioContainer button {
     margin-top: 5px;
     margin-bottom: 5px;
 }
+
 /*.mainContainer{
     position: relative;
     height: 100%;
