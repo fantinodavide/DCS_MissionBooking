@@ -115,8 +115,17 @@ function createTable(parsedMiz, missionId, sideFilter) {
                             let par = mizElm.flightRef;
                             /*console.log("[EVT SET] Book mission");
                             tdElm.click(() => {*/
-                            inputPopup("Conferma presa visione topic forum",[[],[]],(json, getPointerCampo, close) => {
-                                console.log(json);
+                            getAppPersonalization((data) => {
+                                if (data.dashboard.preBookingConfirmation) {
+                                    inputPopup(data.dashboard.preBookingConfText, [[], []], (json, getPointerCampo, close) => {
+                                        console.log(json);
+                                        procBook();
+                                    })
+                                }else{
+                                    procBook();
+                                }
+                            })
+                            function procBook() {
                                 for (let t of myBookedMissions) {
                                     if (t != null && t.playerBooked) {
                                         console.log(t);
@@ -131,8 +140,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                                     grBook(tdElm[0], jsonData.playerName)
                                     //myBookedMissions.push(tdElm)
                                 })
-                            })
-
+                            }
                         }
                         function _dismissMission(mizElm) {
                             let par = mizElm.flightRef;

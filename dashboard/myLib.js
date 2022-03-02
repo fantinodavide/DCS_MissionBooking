@@ -23,7 +23,7 @@ $(document).ready(() => {
                             break;
 
                         default:
-                            send_request(u.url,"GET",{},()=>{})
+                            send_request(u.url, "GET", {}, () => { })
                             break;
                     }
                 }
@@ -42,21 +42,28 @@ function css_var(cssvar, cssval) {
     console.log("Setting " + cssvar + " to " + cssval);
     document.querySelector(':root').style.setProperty('--' + cssvar, cssval)
 }
-function getAppPersonalization() {
-    send_request("/api/getAppPersonalization", "GET", null, (data) => {
-        if (data != "") {
-            const jsonData = JSON.parse(data);
-            setFaviconFromUrl(jsonData.favicon)
-            css_var('accentColor', jsonData.accentc_color)
-        }
-    })
+function getAppPersonalization(callback = null) {
+    var appConfiguration;
+    if (!appConfiguration) {
+        send_request("/api/getAppPersonalization", "GET", null, (data) => {
+            if (data != "") {
+                const jsonData = JSON.parse(data);
+                if (callback) callback(jsonData);
+                appConfiguration = jsonData
+                setFaviconFromUrl(jsonData.favicon)
+                css_var('accentColor', jsonData.accentc_color)
+            }
+        })
+    } else {
+        if (callback) callback(appConfiguration);
+    }
 }
 
-function setFaviconFromUrl(favImg){
+function setFaviconFromUrl(favImg) {
     let headTitle = document.querySelector('head');
     let setFavicon = document.createElement('link');
-    setFavicon.setAttribute('rel','shortcut icon');
-    setFavicon.setAttribute('href',favImg);
+    setFavicon.setAttribute('rel', 'shortcut icon');
+    setFavicon.setAttribute('href', favImg);
     headTitle.appendChild(setFavicon);
 }
 /*function setFaviconFromUrl(url) {

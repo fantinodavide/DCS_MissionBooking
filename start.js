@@ -1,4 +1,4 @@
-const versionN = "1.44";
+const versionN = "1.45";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -952,7 +952,11 @@ function initConfigFile() {
         app_personalization: {
             name: "DCS Mission Booking",
             favicon: "",
-            accentc_color: "#f60"
+            accentc_color: "#f60",
+            dashboard: {
+                preBookingConfirmation: false,
+                preBookingConfText: "Confirm Booking?"
+            }
         },
         forum: {
             db_table_prefix: "forums_",
