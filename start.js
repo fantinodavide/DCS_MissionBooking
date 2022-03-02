@@ -1,4 +1,4 @@
-const versionN = "1.43";
+const versionN = "1.44";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -40,6 +40,7 @@ const logger = log4js.getLogger("App");
 extendLogging()
 
 var wss;
+var server;
 
 start();
 
@@ -57,13 +58,13 @@ function start() {
                         key: fs.readFileSync(privKPath),
                         cert: fs.readFileSync(certPath)
                     }
-                    const server = https.createServer(httpsOptions, app);
+                    server = https.createServer(httpsOptions, app);
                     server.listen(config.http_server.https_port);
                     //wss = new WebSocket.Server({ server });
                     console.log("\HTTPS server listening at https://%s:%s", config.http_server.bind_ip, config.http_server.https_port)
                     handleUpgrade(server);
                 } else {
-                    const server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
+                    server = app.listen(config.http_server.port, config.http_server.bind_ip, function () {
                         var host = server.address().address
                         var port = server.address().port
 
@@ -665,6 +666,7 @@ function start() {
             });
 
             writer.on('finish', (res) => {
+                server.close();
                 installLatestUpdate(dwnDir, dwnFullPath, gitResData);
             })
             writer.on('error', (err) => {
