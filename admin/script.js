@@ -1,5 +1,3 @@
-const { WebSocketServer } = require("ws");
-
 const requestTestParseMission = false;
 var socket;
 
