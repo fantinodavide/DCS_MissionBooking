@@ -121,7 +121,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                                         console.log(json);
                                         procBook();
                                     })
-                                }else{
+                                } else {
                                     procBook();
                                 }
                             })
@@ -312,6 +312,15 @@ function wsAction(jsonData) {
             break;
         case "dissmission":
             grDismiss(tgCell);
+            break;
+        case "priority":
+            console.log(tgCell);
+            if (jsonData.value) $(tgCell).addClass("priority");
+            else $(tgCell).removeClass("priority");
+            break;
+        case "attribute":
+            if (jsonData.value) $(tgCell).addClass(jsonData.attr);
+            else $(tgCell).removeClass(jsonData.attr);
             break;
 
         default:

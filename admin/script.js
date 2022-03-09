@@ -58,7 +58,7 @@ $(document).ready(() => {
 })
 
 function getMissionsList(recordsLimit = 30) {
-    send_request("/api/getAllMissions", "GET", { recordsLimit: recordsLimit }, (data) => {
+    send_request("/api/getAllMissions", "GET", { recordsLimit: recordsLimit, showAll: true }, (data) => {
         const jsonData = JSON.parse(data);
         $("#missionManagementCont").find(".missionDataContainer").remove();
         for (let m of jsonData) {

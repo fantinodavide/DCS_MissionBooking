@@ -27,7 +27,7 @@ const enableServer = true;
 var errorCount = 0;
 
 let tmpData = new Date();
-const logFile = path.join(__dirname, 'logs', (tmpData.toLocaleString().replace(/, /g, '_').replace(/\//g, '').replace(/:/g, '') + ".log"));
+const logFile = path.join(__dirname, 'logs', (tmpData.toISOString().replace(/T/g,"_").replace(/(:|-|\.|Z)/g,"")) + ".log");
 if (!fs.existsSync('logs')) fs.mkdirSync('logs');
 if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "");
 
@@ -38,6 +38,7 @@ log4js.configure({
 });
 const logger = log4js.getLogger("App");
 extendLogging()
+console.log("Log-file:",logFile);
 
 var wss;
 var server;
@@ -148,6 +149,7 @@ function start() {
                 console.log(parsedMiz);
 
                 let insData = new Object(req.body);
+                insData.missionInputData.MissionDateandTime = new Date(insData.missionInputData.MissionDateandTime);
                 insData.parsedMiz = parsedMiz;
 
 
@@ -203,27 +205,29 @@ function start() {
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + ".priority";
 
-                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseBool(parm.customContext.priority) } }, (err, dbRes) => {
+                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseValue(parm.customContext.priority) } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         res.send({ priority: parm.customContext.priority })
+                        wssBroadcast({ action: "priority", value: parseValue(parm.customContext.priority), slotData: parm })
                     }
                 })
             });
         })
         app.get('/api/admin/setAttribute', function (req, res, next) {
             const parm = req.query;
-
+            
             mongoConn((dbo) => {
                 //log(req.query);
-
+                
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + "." + parm.customContext.attr;
-
-                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseBool(parm.customContext.value) } }, (err, dbRes) => {
+                
+                dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseValue(parm.customContext.value) } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         res.send({ priority: parm.customContext.priority })
+                        wssBroadcast({ action: "attribute", attr: parm.customContext.attr, value: parseValue(parm.customContext.value), slotData: parm })
                     }
                 })
             });
@@ -297,8 +301,15 @@ function start() {
         })
         app.get('/api/getAllMissions/:sel?/:mission_id?', function (req, res, next) {
             const missionId = req.params.mission_id;
-            const find = req.params.sel == "m" ? { _id: ObjectID(missionId) } : {};
+            let find = req.params.sel == "m" ? { _id: ObjectID(missionId) } : {};
+            let specificMission = req.params.sel == "m" && req.params.mission_id;
             const recordsLimit = req.params.recordsLimit ? req.params.recordsLimit : 10;
+            const parm = req.query;
+            const dateNow = new Date();
+            
+            if(!parm.showAll && !specificMission) find["missionInputData.MissionDateandTime"] = {$gt: dateNow};
+            console.log(dateNow,find);
+            // (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
             mongoConn((dbo) => {
                 dbo.collection("missions").find(find, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(recordsLimit).toArray((err, dbRes) => {
                     if (err) serverError(err);
@@ -347,11 +358,12 @@ function start() {
                 let playerName = req.userSession.username;
                 let userId = req.userSession.user_id;
 
-                dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
+                dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { missionInputData: 1, [findStr]: 1 } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
-                        if ((!slot.user_id || slot.user_id == -1) && !slot.reserved) {
+                        let dateNow = new Date();
+                        if ((!slot.user_id || slot.user_id == -1) && !slot.reserved && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
@@ -1059,8 +1071,10 @@ async function verifyArgon2(hash, comp, callback) {
 function length(obj) {
     return Object.keys(obj).length;
 }
-function parseBool(str) {
-    return (str === 'true')
+function parseValue(str) {
+    if (str === 'true') return true;
+    else if (str === 'false') return false;
+    else return str
 }
 
 function wssBroadcast(data, ws = null) {

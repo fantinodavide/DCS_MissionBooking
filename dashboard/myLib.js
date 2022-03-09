@@ -23,7 +23,9 @@ $(document).ready(() => {
                             break;
 
                         default:
-                            send_request(u.url, "GET", {}, () => { })
+                            a.on("click",()=>{
+                                send_request(u.url, "GET", {}, () => { })
+                            })
                             break;
                     }
                 }
