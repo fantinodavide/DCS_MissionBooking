@@ -14,27 +14,66 @@ $(document).ready(() => {
             //$("#inpMissionData").fadeIn("fast");
             let sender = snd.target;
             let missionName = sender.options[sender.selectedIndex].innerHTML;
-            inputPopup(missionName, [["Mission Name", "Mission Date and Time"], ["text", "datetime-local"]], (json, getPointerCampo, close) => {
-                let dt = { missionFile: $("#missionSelection").val(), missionInputData: JSON.parse(json) };
-                console.log(dt);
-                let rq = sendRequestNoCallback("/api/admin/publishMission", "POST", dt);
-                console.log(rq);
-                rq.done((data, status, xhr) => {
-                    console.log(data, status, xhr);
-                    close();
-                    getMissionsList();
-                    //if(status==200)
+
+            
+            send_request("/api/admin/getForumGroups", "GET", null, (data) => {
+                const jsonData = JSON.parse(data);
+                let blueGrpSel = $("<select multiple></select>");
+                let redGrpSel = $("<select multiple></select>");
+                for (let g of jsonData) {
+                    blueGrpSel.append($("<option "+(g.selected?"selected":"")+">"+g.group_name+"</option>"));
+                    redGrpSel.append($("<option "+(g.selected?"selected":"")+">"+g.group_name+"</option>"));
+                }
+                const inpObjs = [
+                    {
+                        title: "Mission Name",
+                        name: "Mission Name",
+                        type: "text"
+                    },
+                    {
+                        title: "Mission Date and Time",
+                        name: "Mission Date and Time",
+                        type: "datetime-local"
+                    },
+                    {
+                        title: "Blue Authorized Groups",
+                        name: "authGroups-blue",
+                        elm: blueGrpSel
+                    },
+                    {
+                        title: "Red Authorized Groups",
+                        name: "authGroups-red",
+                        elm: redGrpSel
+                    }
+                ]
+                console.log(inpObjs);
+                inputPopupObjs(missionName, inpObjs, (json, getPointerCampo, close) => {
+                    let dt = { missionFile: $("#missionSelection").val(), missionInputData: JSON.parse(json) };
+                    console.log(dt);
+                    let rq = sendRequestNoCallback("/api/admin/publishMission", "POST", dt);
+                    console.log(rq);
+                    rq.done((data, status, xhr) => {
+                        console.log(data, status, xhr);
+                        close();
+                        getMissionsList();
+                        //if(status==200)
+                    })
+                    rq.fail((data, status, xhr) => {
+                    })
+                    /*rq.error((err)=>{
+                        console.error(data);
+                    })*/
+                }, "Pubblica", true, () => {
+                    let options = $(sender).find(":selected")
+                    options.removeAttr("selected")
+                    console.log(options);
                 })
-                rq.fail((data, status, xhr) => {
-                })
-                /*rq.error((err)=>{
-                    console.error(data);
-                })*/
-            }, "Pubblica")
+            })
+            //            inputPopup(missionName, [["Mission Name", "Mission Date and Time"], ["text", "datetime-local"]], (json, getPointerCampo, close) => {
         })
-        
+
         getMissionsList()
-        
+
         //startWebsocket();
         if (requestTestParseMission) {
             send_request("/api/admin/testParseMission", "GET", null, (data) => {

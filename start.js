@@ -1,4 +1,4 @@
-const versionN = "1.47";
+const versionN = "1.48";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -27,7 +27,7 @@ const enableServer = true;
 var errorCount = 0;
 
 let tmpData = new Date();
-const logFile = path.join(__dirname, 'logs', (tmpData.toISOString().replace(/T/g,"_").replace(/(:|-|\.|Z)/g,"")) + ".log");
+const logFile = path.join(__dirname, 'logs', (tmpData.toISOString().replace(/T/g, "_").replace(/(:|-|\.|Z)/g, "")) + ".log");
 if (!fs.existsSync('logs')) fs.mkdirSync('logs');
 if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "");
 
@@ -38,7 +38,7 @@ log4js.configure({
 });
 const logger = log4js.getLogger("App");
 extendLogging()
-console.log("Log-file:",logFile);
+console.log("Log-file:", logFile);
 
 var wss;
 var server;
@@ -216,13 +216,13 @@ function start() {
         })
         app.get('/api/admin/setAttribute', function (req, res, next) {
             const parm = req.query;
-            
+
             mongoConn((dbo) => {
                 //log(req.query);
-                
+
                 let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
                 let update = findStr + "." + parm.customContext.attr;
-                
+
                 dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: parseValue(parm.customContext.value) } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
@@ -233,6 +233,20 @@ function start() {
             });
         })
 
+        app.get('/api/admin/getForumGroups', function (req, res, next) {
+            mysqlConn((con) => {
+                //const query = "SELECT DISTINCT rank_title FROM " + config.forum.db_table_prefix + "ranks; SELECT DISTINCT group_name FROM " + config.forum.db_table_prefix + "groups";
+                const query = "SELECT DISTINCT group_name FROM " + config.forum.db_table_prefix + "groups";
+                con.query(query, function (err, dbRes) {
+                    if (err) serverError(err);
+                    /*con.query(query, function (err, dbRes2) {
+                        if (err) serverError(err);
+                    });*/
+                    for (let g of dbRes) if (config.forum.authorized_groups.includes(g.group_name)) g.selected = true;
+                    res.send(dbRes)
+                });
+            })
+        })
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
             //log(parm);
@@ -306,9 +320,9 @@ function start() {
             const recordsLimit = req.params.recordsLimit ? req.params.recordsLimit : 10;
             const parm = req.query;
             const dateNow = new Date();
-            
-            if(!parm.showAll && !specificMission) find["missionInputData.MissionDateandTime"] = {$gt: dateNow};
-            console.log(dateNow,find);
+
+            if (!parm.showAll && !specificMission) find["missionInputData.MissionDateandTime"] = { $gt: dateNow };
+            console.log(dateNow, find);
             // (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
             mongoConn((dbo) => {
                 dbo.collection("missions").find(find, { projection: { missionInputData: 1, _id: 1 } }).sort({ "missionInputData.MissionDateandTime": -1 }).limit(recordsLimit).toArray((err, dbRes) => {
@@ -363,7 +377,11 @@ function start() {
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
                         let dateNow = new Date();
-                        if ((!slot.user_id || slot.user_id == -1) && !slot.reserved && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)) {
+                        const canBook = (!slot.user_id || slot.user_id == -1)
+                            && !slot.reserved
+                            && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
+                            && (dbRes.missionInputData["authGroups-"+parm.sideColor].includes(req.userSession.group_name) || !(dbRes.missionInputData["authGroups-blue"] &&dbRes.missionInputData["authGroups-red"]))
+                        if (canBook) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {

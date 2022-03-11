@@ -172,7 +172,7 @@ button:focus{
 }
 
 fieldset {
-    height: 55px;
+    //height: 55px;
     border: 2px solid var(--txtColor1);
     transition: all 150ms ease-in-out;
 }
@@ -183,15 +183,36 @@ fieldset {
     justify-content: center;
     align-items: center;
     border-radius: 5px;
+    //align-self: stretch;
 }
 
-.loginContainer fieldset input {
+.loginContainer fieldset input, .loginContainer fieldset select {
     width: 200px;
     border: none;
     padding: 5px;
     background: #0000;
     transition: all 150ms ease-in-out;
     color: var(--txtColor1);
+}
+.loginContainer fieldset select{
+    padding: 0px;
+
+}
+.loginContainer select{
+    -webkit-appearance: menulist-button;
+}
+.loginContainer option{
+    padding: 0px 5px;
+    border-radius: 5px;
+}
+.loginContainer select:focus option:checked{
+    box-shadow: 0 0 10px 100px #ddd inset;
+
+}
+.loginContainer select:focus option:checked, .loginContainer option:focus, .loginContainer option:active, .loginContainer option:hover{
+    outline: none;
+    box-shadow: 0 0 10px 100px #aaa inset;
+    color: var(--bgColor1)
 }
 
 .radioContainer {

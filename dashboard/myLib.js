@@ -23,7 +23,7 @@ $(document).ready(() => {
                             break;
 
                         default:
-                            a.on("click",()=>{
+                            a.on("click", () => {
                                 send_request(u.url, "GET", {}, () => { })
                             })
                             break;
@@ -178,6 +178,113 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma", showAnn
 
     function close() {
         annullaBtn.trigger("click");
+    }
+    function getPointerCampo(campo) {
+        return $("[name=" + campo + "]").parent();
+    }
+}
+function inputPopupObjs(title, objs, callback, txtBtnConf = "Conferma", showAnnulla = true, closeCallback = null) {
+    //if($(".inputPopup")[0]) return;
+    if ($(".loginContainer")[0]) return;
+
+    let hideBg = $("<div></div>");
+    let loginContainer = $("<div></div>");
+    let header = $("<h2>" + title + "</h2>");
+    let btnContainer = $("<div></div>");
+    let confBtn = $("<button>" + txtBtnConf + "</button>");
+    let annullaBtn = $("<button>Annulla</button>");
+
+    loginContainer.addClass("loginContainer");
+    btnContainer.addClass("btnContainer");
+    confBtn.addClass("loginBtn");
+    annullaBtn.addClass("annullaBtn");
+    hideBg.css({
+        position: "fixed",
+        top: "0",
+        left: "0",
+        height: "100%",
+        width: "100%",
+        background: "#0004",
+        opacity: "0",
+        transition: "all 150ms ease-in-out"
+    })
+    annullaBtn.on("click", close)
+    confBtn.on("click", function () {
+        let retJson = new Object;
+        let canSend = true;
+        for (let inp of loginContainer.find("input")) {
+            if (inp.value.replace(" ", "") != "") {
+                /*let tmp = new Object;
+                tmp = {[inp.name]:inp.value};
+                arrCampi.push(tmp)*/
+                retJson[inp.name] = inp.value;
+            } else {
+                $(inp.parentNode).css("background", "#f77");
+                canSend = false;
+            }
+            setTimeout(function () { $(inp.parentNode).css("background", "") }, 2000);
+        }
+        
+        for (let opt of loginContainer.find(":selected")) {
+            let indx = $(opt.parentNode).attr("name");
+            
+            if(!retJson[indx]) retJson[indx] = [];
+            retJson[indx].push(opt.value);
+            
+            
+        }
+        if (canSend) {
+            let json = JSON.stringify(retJson);
+            callback(json, getPointerCampo, close);
+        }
+    })
+
+    $("body").on("keydown", function (e) {
+        if (e.originalEvent.key == "Escape") {
+            $(annullaBtn).trigger("click");
+        }
+    })
+    loginContainer.append(header);
+    for (let o of objs) {
+        let fieldset = $("<fieldset></fieldset>");
+        let legend = $("<legend>" + toUpperFirstChar(o.title) + "</legend>");
+        let input = $("<input>");
+        if (o.elm) input = o.elm;
+        if (o.name) input.attr("name", o.name.replace(/\s/g, ""))
+        if (o.type) input.attr("type", o.type);
+        input.on("keydown", function (e) {
+            if (e.originalEvent.key == "Enter") {
+                $(confBtn).trigger("click");
+            }
+        })
+
+        if (!o.noFieldset) {
+            fieldset.append(legend);
+            fieldset.append(input);
+            loginContainer.append(fieldset);
+        } else {
+            loginContainer.append(input);
+        }
+    }
+
+    if (showAnnulla) btnContainer.append(annullaBtn);
+    btnContainer.append(confBtn);
+    loginContainer.append(btnContainer);
+    $("body").append(loginContainer);
+    $("body").append(hideBg);
+    setTimeout(function () {
+        loginContainer.css("opacity", "1");
+        hideBg.css("opacity", "1");
+    }, 5)
+
+    function close() {
+        loginContainer.css("opacity", "0");
+        hideBg.css("opacity", "0");
+        setTimeout(function () {
+            loginContainer.remove();
+            hideBg.remove();
+        }, 160)
+        if(closeCallback) closeCallback();
     }
     function getPointerCampo(campo) {
         return $("[name=" + campo + "]").parent();
