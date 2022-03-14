@@ -1,4 +1,4 @@
-const versionN = "1.48";
+const versionN = "1.49";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -380,7 +380,7 @@ function start() {
                         const canBook = (!slot.user_id || slot.user_id == -1)
                             && !slot.reserved
                             && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
-                            && (dbRes.missionInputData["authGroups-"+parm.sideColor].includes(req.userSession.group_name) || !(dbRes.missionInputData["authGroups-blue"] &&dbRes.missionInputData["authGroups-red"]))
+                            && (dbRes.missionInputData["authGroups-"+parm.sideColor].includes(req.userSession.group_name) || !(dbRes.missionInputData["authGroups-blue"] &&dbRes.missionInputData["authGroups-red"]) || isAdmin(req))
                         if (canBook) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
