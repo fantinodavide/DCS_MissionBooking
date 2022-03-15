@@ -1,4 +1,4 @@
-const versionN = "1.48";
+const versionN = "1.49";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -380,7 +380,7 @@ function start() {
                         const canBook = (!slot.user_id || slot.user_id == -1)
                             && !slot.reserved
                             && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
-                            && (dbRes.missionInputData["authGroups-"+parm.sideColor].includes(req.userSession.group_name) || !(dbRes.missionInputData["authGroups-blue"] &&dbRes.missionInputData["authGroups-red"]))
+                            && (dbRes.missionInputData["authGroups-"+parm.sideColor].includes(req.userSession.group_name) || !(dbRes.missionInputData["authGroups-blue"] && dbRes.missionInputData["authGroups-red"]) || isAdmin(req))
                         if (canBook) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
@@ -416,8 +416,12 @@ function start() {
                 dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
+                        const canBook = slot.player 
+                        && slot.player != "" 
+                        && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
+                        && ((slot.user_id && slot.user_id == userId) || (isAdmin(req) && parm.customContext.action == "force_dismission"))
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
-                        if (slot.player && slot.player != "" && ((slot.user_id && slot.user_id == userId) || (isAdmin(req) && parm.customContext.action == "force_dismission"))) {
+                        if (canBook) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: -1 } }, (err, dbRes) => {
                                 if (err) serverError(err);
                                 else {
