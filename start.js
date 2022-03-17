@@ -1,4 +1,4 @@
-const versionN = "1.52";
+const versionN = "1.53";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -416,12 +416,12 @@ function start() {
                 dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { missionInputData: 1, [findStr]: 1 } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
+                        let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
                         let dateNow = new Date();
-                        const canBook = slot.player 
+                        const canBook = slot.player
                         && slot.player != "" 
                         && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
                         && ((slot.user_id && slot.user_id == userId) || (isAdmin(req) && parm.customContext.action == "force_dismission"))
-                        let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
                         if (canBook) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: -1 } }, (err, dbRes) => {
                                 if (err) serverError(err);
