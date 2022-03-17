@@ -1,4 +1,4 @@
-const versionN = "1.50";
+const versionN = "1.51";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -416,6 +416,7 @@ function start() {
                 dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
+                        let dateNow = new Date();
                         const canBook = slot.player 
                         && slot.player != "" 
                         && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
