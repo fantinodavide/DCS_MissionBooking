@@ -1,4 +1,4 @@
-const versionN = "1.51";
+const versionN = "1.52";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -413,7 +413,7 @@ function start() {
                 let playerName = "";
                 let userId = req.userSession.user_id;
 
-                dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { [findStr]: 1 } }, (err, dbRes) => {
+                dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { missionInputData: 1, [findStr]: 1 } }, (err, dbRes) => {
                     if (err) serverError(err);
                     else {
                         let dateNow = new Date();
