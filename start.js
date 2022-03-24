@@ -1,4 +1,4 @@
-const versionN = "1.57";
+const versionN = "1.58";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -380,7 +380,7 @@ function start() {
                         const canBook = (!slot.user_id || slot.user_id == -1)
                             && !slot.reserved
                             && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
-                            && (dbRes.missionInputData["authGroups-"+parm.sideColor].includes(req.userSession.group_name) || !(dbRes.missionInputData["authGroups-blue"] && dbRes.missionInputData["authGroups-red"]) || isAdmin(req))
+                            && (dbRes.missionInputData["authGroups-" + parm.sideColor].includes(req.userSession.group_name) || !(dbRes.missionInputData["authGroups-blue"] && dbRes.missionInputData["authGroups-red"]) || isAdmin(req))
                         if (canBook) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: userId } }, (err, dbRes) => {
                                 if (err) serverError(err);
@@ -419,9 +419,9 @@ function start() {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
                         let dateNow = new Date();
                         const canBook = slot.player
-                        && slot.player != "" 
-                        && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
-                        && ((slot.user_id && slot.user_id == userId) || (isAdmin(req) && parm.customContext.action == "force_dismission"))
+                            && slot.player != ""
+                            && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
+                            && ((slot.user_id && slot.user_id == userId) || (isAdmin(req) && parm.customContext.action == "force_dismission"))
                         if (canBook) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: -1 } }, (err, dbRes) => {
                                 if (err) serverError(err);
@@ -701,7 +701,7 @@ function start() {
             });
 
             writer.on('finish', (res) => {
-                server.close();
+                if (server) server.close();
                 installLatestUpdate(dwnDir, dwnFullPath, gitResData);
             })
             writer.on('error', (err) => {
@@ -908,8 +908,8 @@ function getMissionFlightsFromString(missionFile) {
     }
     return flightsReturn
 }
-function LUAGetKey(key){
-    return LUARealString(key.key.raw?key.key.raw:key.key.name);
+function LUAGetKey(key) {
+    return LUARealString(key.key.raw ? key.key.raw : key.key.name);
 }
 
 function LUARealString(txt) {
@@ -919,8 +919,8 @@ function parseCallsign(callsignLua) {
     let ret = { name: "", group: 1, pilot: 1 };
     //console.log("callsign", callsignLua, ret);
     if (callsignLua) {
-        if (callsignLua[1]) ret.group = callsignLua[1].value.value?callsignLua[1].value.value:1;
-        if (callsignLua[2]) ret.pilot = callsignLua[2].value.value?callsignLua[2].value.value:1;
+        if (callsignLua[1]) ret.group = callsignLua[1].value.value ? callsignLua[1].value.value : 1;
+        if (callsignLua[2]) ret.pilot = callsignLua[2].value.value ? callsignLua[2].value.value : 1;
         if (callsignLua[3]) ret.name = LUARealString(callsignLua[3].value.raw).replace(ret.group.toString() + ret.pilot.toString(), "");
     }
     return ret;
