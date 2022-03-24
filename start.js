@@ -1,4 +1,4 @@
-const versionN = "1.53";
+const versionN = "1.54";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -913,8 +913,8 @@ function parseCallsign(callsignLua) {
     let ret = { name: "", group: 1, pilot: 1 };
     console.log("callsign", callsignLua, ret);
     if (callsignLua) {
-        if (callsignLua[1]) ret.group = callsignLua[1].value.value;
-        if (callsignLua[2]) ret.pilot = callsignLua[2].value.value;
+        if (callsignLua[1]) ret.group = callsignLua[1].value.value?callsignLua[1].value.value:1;
+        if (callsignLua[2]) ret.pilot = callsignLua[2].value.value?callsignLua[2].value.value:1;
         if (callsignLua[3]) ret.name = LUARealString(callsignLua[3].value.raw).replace(ret.group.toString() + ret.pilot.toString(), "");
     }
     return ret;
