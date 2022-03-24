@@ -183,6 +183,7 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma", showAnn
         return $("[name=" + campo + "]").parent();
     }
 }
+close = null;
 function inputPopupObjs(title, objs, callback, txtBtnConf = "Conferma", showAnnulla = true, closeCallback = null) {
     //if($(".inputPopup")[0]) return;
     if ($(".loginContainer")[0]) return;
