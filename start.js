@@ -873,6 +873,7 @@ function getMissionFlightsFromString(missionFile) {
                                                                             else if (aSubInfoValue.includes("Mi-24")) repeats = 1;
                                                                             else if (aSubInfoValue.includes("SA342")) repeats = 1;
                                                                             else if (aSubInfoValue.includes("AH-64")) repeats = 1;
+                                                                            else if (aSubInfoValue.includes("Mosquito")) repeats = 1;
                                                                         }
                                                                     } else if (aSubInfoKey == "callsign") flightsReturn[side][fName].callsign = parseCallsign(aSubInfoValue.fields);
 
