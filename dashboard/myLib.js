@@ -1,4 +1,4 @@
-close = null;
+//close = null;
 $(document).ready(() => {
     send_request("/api/getAppName", "GET", null, (data) => {
         if (data != "") {
@@ -137,7 +137,7 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma", showAnn
         }
         if (canSend) {
             let json = JSON.stringify(retJson);
-            callback(json, getPointerCampo, close);
+            callback(json, getPointerCampo, popupClose);
         }
     })
 
@@ -177,7 +177,7 @@ function inputPopup(title, campiTipi, callback, txtBtnConf = "Conferma", showAnn
         hideBg.css("opacity", "1");
     }, 5)
 
-    function close() {
+    function popupClose() {
         annullaBtn.trigger("click");
     }
     function getPointerCampo(campo) {
@@ -209,7 +209,7 @@ function inputPopupObjs(title, objs, callback, txtBtnConf = "Conferma", showAnnu
         opacity: "0",
         transition: "all 150ms ease-in-out"
     })
-    annullaBtn.on("click", close)
+    annullaBtn.on("click", popupClose)
     confBtn.on("click", function () {
         let retJson = new Object;
         let canSend = true;
@@ -236,7 +236,7 @@ function inputPopupObjs(title, objs, callback, txtBtnConf = "Conferma", showAnnu
         }
         if (canSend) {
             let json = JSON.stringify(retJson);
-            callback(json, getPointerCampo, close);
+            callback(json, getPointerCampo, popupClose);
         }
     })
 
@@ -278,7 +278,7 @@ function inputPopupObjs(title, objs, callback, txtBtnConf = "Conferma", showAnnu
         hideBg.css("opacity", "1");
     }, 5)
 
-    function close() {
+    function popupClose() {
         loginContainer.css("opacity", "0");
         hideBg.css("opacity", "0");
         setTimeout(function () {

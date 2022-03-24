@@ -29,7 +29,7 @@ $(document).ready(() => {
 })
 
 function login() {
-    inputPopup("Login", [["Username", "Password"], ["text", "password"]], (json, getPointerCampo, close) => {
+    inputPopup("Login", [["Username", "Password"], ["text", "password"]], (json, getPointerCampo, popupClose) => {
         send_request("/api/login", "POST", JSON.parse(json), (data) => {
             const jsonData = JSON.parse(data);
             console.log(jsonData);
@@ -39,7 +39,7 @@ function login() {
                     localStorage.setItem("stok", jsonData.userDt.token);
                     localStorage.setItem("username", jsonData.userDt.username);
                     localStorage.setItem("uid", jsonData.userDt.id)
-                    close();
+                    popupClose();
                     location.reload();
                     break;
                 case 'wrong_credentials':
@@ -134,7 +134,6 @@ function createTable(parsedMiz, missionId, sideFilter) {
                                 }
                                 myBookedMissions = [];
                                 console.log("Booking mission", par);
-                                close();
                                 send_request("/api/bookMission", "GET", par, (data) => {
                                     const jsonData = JSON.parse(data);
                                     grBook(tdElm[0], jsonData.playerName)
