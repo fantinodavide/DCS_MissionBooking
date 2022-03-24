@@ -1,4 +1,4 @@
-const versionN = "1.55";
+const versionN = "1.56";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -813,17 +813,17 @@ function parseMissionFile(mizFile, success) {
 function getMissionFlightsFromString(missionFile) {
     let flightsReturn = {};
     for (let o of missionFile.body[0].init[0].fields) {
-        let key = o.key.raw.replace(/\"/g, '');
+        let key = LUAGetKey(o);
         if (key == "coalition") {
             for (let o2 of o.value.fields) {
-                let side = o2.key.raw.replace(/\"/g, '');
+                let side = LUAGetKey(o2);
                 if (!flightsReturn[side]) flightsReturn[side] = {};
 
                 for (let o3 of o2.value.fields) {
-                    if (o3.key.raw.replace(/\"/g, '') == "country") {
+                    if (LUAGetKey(o3) == "country") {
                         for (let c of o3.value.fields) {
                             for (let o4 of c.value.fields) {
-                                if (["plane", "helicopter"].includes(o4.key.raw.replace(/\"/g, ''))) {
+                                if (["plane", "helicopter"].includes(LUAGetKey(o4))) {
                                     for (let fGroups of o4.value.fields[0].value.fields) {
                                         //log(fGroups);
                                         //flights[side].push();
@@ -831,7 +831,8 @@ function getMissionFlightsFromString(missionFile) {
                                         let fName = "";
                                         for (let i = 0; i < 2; i++) {
                                             for (let o5 of fGroups.value.fields) {
-                                                let o5Key = o5.key.raw.replace(/\"/g, '');
+                                                let o5Key = LUAGetKey(o5);
+
                                                 let valRaw = o5.value.raw ? o5.value.raw.replace(/\"/g, '') : "";
                                                 if (o5Key == "name") {
                                                     if (!flightsReturn[side][valRaw]) flightsReturn[side][valRaw] = {};
@@ -878,7 +879,7 @@ function getMissionFlightsFromString(missionFile) {
                                                                     if (["type", "unitid", "name", "parking", "skill"].includes(aSubInfoKey)) {
                                                                         //log((arrayIndex + ") " + aSubInfoKey + ": "), aSubInfoValue)
                                                                         if (aSubInfoKey == "callsign") {
-                                                                            console.log("callsign", aSubInfoValue);
+                                                                            //console.log("callsign", aSubInfoValue);
                                                                             flightsReturn[side][fName]["units"][arrayIndex][aSubInfoKey] = aSubInfoValue.name;
                                                                         } else if (aSubInfoKey == "skill") {
                                                                             flightsReturn[side][fName].skill = aSubInfoValue;
@@ -906,12 +907,16 @@ function getMissionFlightsFromString(missionFile) {
     }
     return flightsReturn
 }
+function LUAGetKey(key){
+    return LUARealString(key.key.raw?key.key.raw:key.key.name);
+}
+
 function LUARealString(txt) {
     return txt.replace(/\"/g, '')
 }
 function parseCallsign(callsignLua) {
     let ret = { name: "", group: 1, pilot: 1 };
-    console.log("callsign", callsignLua, ret);
+    //console.log("callsign", callsignLua, ret);
     if (callsignLua) {
         if (callsignLua[1]) ret.group = callsignLua[1].value.value?callsignLua[1].value.value:1;
         if (callsignLua[2]) ret.pilot = callsignLua[2].value.value?callsignLua[2].value.value:1;
