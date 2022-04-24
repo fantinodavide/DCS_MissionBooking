@@ -1,4 +1,4 @@
-const versionN = "1.58";
+const versionN = "1.59";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -261,8 +261,10 @@ function start() {
                         console.log("Result: ", result[0]);
                         verifyArgon2(result[0].user_password, parm.Password, (val) => {
                             if (val) {
+                                const sessDurationMS = config.other.session_duration_hours * 60 * 60 * 1000;
                                 let userDt = result[0];
                                 userDt.login_date = new Date();
+                                userDt.session_expiration = new Date(Date.now() + sessDurationMS);
                                 delete userDt.user_password;
                                 let error;
                                 do {
@@ -275,8 +277,8 @@ function start() {
                                                 dbo.collection("sessions").insertOne(userDt, (err, dbRes) => {
                                                     if (err) res.sendStatus(500);
                                                     else {
-                                                        res.cookie("stok", userDt.token)
-                                                        res.cookie("uid", userDt.user_id)
+                                                        res.cookie("stok", userDt.token, { expires: userDt.session_expiration })
+                                                        res.cookie("uid", userDt.user_id, { expires: userDt.session_expiration })
                                                         res.send({ status: "login_ok", userDt: userDt });
                                                     }
                                                 })
@@ -1013,7 +1015,8 @@ function initConfigFile() {
         other: {
             force_https: false,
             automatic_updates: true,
-            update_check_interval_seconds: 3600
+            update_check_interval_seconds: 3600,
+            session_duration_hours: 168
         }
     }
     /*var rl = readline.createInterface({
