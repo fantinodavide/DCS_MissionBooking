@@ -1,4 +1,4 @@
-const versionN = "1.61";
+const versionN = "1.62";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -919,14 +919,28 @@ function LUARealString(txt) {
 }
 function parseCallsign(callsignLua) {
     let ret = { name: "", group: 1, pilot: 1 };
-    const callsignNameIndx = callsignLua[3]?3:"name"
+    console.log(callsignLua);
     //console.log("callsign", callsignLua, ret);
     if (callsignLua) {
-        if (callsignLua[1]) ret.group = callsignLua[1].value.value ? callsignLua[1].value.value : 1;
-        if (callsignLua[2]) ret.pilot = callsignLua[2].value.value ? callsignLua[2].value.value : 1;
-        if (callsignLua[callsignNameIndx]) ret.name = LUARealString(callsignLua[callsignNameIndx].value.raw).replace(ret.group.toString() + ret.pilot.toString(), "");
+        let csparts = [];
+
+        csparts[1]=getLUAArrElm(callsignLua, 1)
+        csparts[2]=getLUAArrElm(callsignLua, 2)
+        csparts[3]=getLUAArrElm(callsignLua, 3)
+        csparts["name"]=getLUAArrElm(callsignLua, "name")
+        //console.log(csparts)
+
+        if (csparts[2]) ret.group = csparts[2].value.value ? csparts[2].value.value : 1;
+        if (csparts[3]) ret.pilot = csparts[3].value.value ? csparts[3].value.value : 1;
+        if (csparts["name"]) ret.name = LUARealString(csparts["name"].value.raw).replace(ret.group.toString() + ret.pilot.toString(), "");
     }
     return ret;
+}
+function getLUAArrElm(luaArr, indx) {
+    for(let value of luaArr){
+        if (LUARealString(value.key.raw) == indx || value.key.value == indx) return value
+    }
+    return null;
 }
 function toUpperFirstChar(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
