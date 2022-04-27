@@ -66,7 +66,8 @@ function createTable(parsedMiz, missionId, sideFilter) {
                     table.append("<tr class='rowSpacer'></tr>");
                     const unitsCount = count(v.units);
                     let flightName = k;
-                    let row = $("<tr><td class='flightTD' rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.aircraftType.replace(/_50/g, '').replace(/_hornet/g, '') + "</span><span class='groupName'>" + (v.callsign && v.callsign.name ? (v.callsign.name) + "-" + v.callsign.group : k) + "</span></div></td></tr>");
+                    v.simpleAircraftType = v.aircraftType.replace(/_50|_hornet|_BLK_II|_2|-135-GR/g, '');
+                    let row = $("<tr><td class='flightTD' rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.simpleAircraftType + "</span><span class='groupName'>" + (v.callsign && v.callsign.name ? (v.callsign.name) + "-" + v.callsign.group : k) + "</span></div></td></tr>");
                     table.append(row);
                     Object.entries(v).forEach(entry => {
                         const [k, v] = entry;
