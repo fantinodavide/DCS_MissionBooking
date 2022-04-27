@@ -919,11 +919,12 @@ function LUARealString(txt) {
 }
 function parseCallsign(callsignLua) {
     let ret = { name: "", group: 1, pilot: 1 };
+    const callsignNameIndx = callsignLua[3]?3:"name"
     //console.log("callsign", callsignLua, ret);
     if (callsignLua) {
         if (callsignLua[1]) ret.group = callsignLua[1].value.value ? callsignLua[1].value.value : 1;
         if (callsignLua[2]) ret.pilot = callsignLua[2].value.value ? callsignLua[2].value.value : 1;
-        if (callsignLua[3]) ret.name = LUARealString(callsignLua[3].value.raw).replace(ret.group.toString() + ret.pilot.toString(), "");
+        if (callsignLua[callsignNameIndx]) ret.name = LUARealString(callsignLua[callsignNameIndx].value.raw).replace(ret.group.toString() + ret.pilot.toString(), "");
     }
     return ret;
 }
