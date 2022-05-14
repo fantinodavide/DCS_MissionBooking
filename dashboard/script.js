@@ -14,6 +14,7 @@ $(document).ready(() => {
                 console.log(jsonData);
                 //console.log(jsonData.parsedMiz.blue);
                 $("#tableContainer").find("table").remove();
+
                 createTable(jsonData.parsedMiz, jsonData._id, "blue/red")
                 //createTable(jsonData.parsedMiz.red, "red")
                 rightMouseButtonEvt();
@@ -52,9 +53,14 @@ function login() {
 }
 
 let myBookedMissions = [];
-function createTable(parsedMiz, missionId, sideFilter) {
+function createTable(orParsedMiz, missionId, sideFilter) {
     let table = $("<table><tr><th>Flight</th><th>Task</th><th>Slots</th></tr></table>");
     //$(".mainContainer")
+    const parsedMiz = orParsedMiz;
+    // parsedMiz["blue"] = orParsedMiz.blue.sort((a, b) => { return a.slotN - b.slotN; })
+    // parsedMiz["red"] = orParsedMiz.red.sort((a, b) => { return a.slotN - b.slotN; })
+    // parsedMiz["neutrals"] = orParsedMiz.neutrals.sort((a, b) => { return a.slotN - b.slotN; })
+
     Object.entries(parsedMiz).forEach(entry => {
         const [k, v] = entry;
         let sideColor = k;
@@ -89,7 +95,8 @@ function createTable(parsedMiz, missionId, sideFilter) {
                         let playerBooked = v.player && v.player != "";
                         let aircraftN = v.slotN ? v.slotN : k;
                         if (aircraftN > 10) aircraftN = (aircraftN / 10);
-                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + " " + (v.priority ? "priority" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + aircraftN + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
+                        let multicrewStr = (v.multicrewN>1?"-"+v.multicrewN:"");
+                        let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + " " + (v.priority ? "priority" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + aircraftN + multicrewStr + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
                         if (v.multicrew) tdElm.addClass("multicrew");
                         if (v.reserved) tdElm.addClass("reserved");
                         if (unitsCount == 1) tdElm.addClass("singleSlot");
@@ -157,7 +164,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
                             })
                             //})
                         }
-                        if (k == 1)
+                        if (k == 0)
                             row.append(tdElm);
                         else {
                             let tmpTr = $("<tr></tr>")
@@ -172,6 +179,7 @@ function createTable(parsedMiz, missionId, sideFilter) {
     })
     $("#tableContainer").append(table);
 }
+
 function recursiveCellCreator(k, v) {
     if (!isObject(v)) {
         let td = $("<td rowspan=\"" + unitsCount + "\">" + v + "</td>");

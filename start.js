@@ -844,21 +844,27 @@ function getMissionFlightsFromString(missionFile) {
                                                     if (o5Key == "task") {
                                                         flightsReturn[side][fName].task = valRaw;
                                                     } if (o5Key == "units") {
-                                                        if (!flightsReturn[side][fName]["units"]) flightsReturn[side][fName]["units"] = {};
+                                                        if (!flightsReturn[side][fName]["units"]) flightsReturn[side][fName]["units"] = [];
                                                         for (let aircraft of o5.value.fields) {
                                                             let repeats = 0;
                                                             for (let _rep = -1; _rep < repeats; _rep++) {
                                                                 let slotN = aircraft.key.value;
-                                                                let arrayIndex = length(flightsReturn[side][fName]["units"]) + 1//flightsReturn[side][fName]["units"].length;//aircraft.key.value * 1;
-                                                                if (!arrayIndex) arrayIndex = 1;
+                                                                let arrayIndex = length(flightsReturn[side][fName]["units"]) + 0//1//flightsReturn[side][fName]["units"].length;//aircraft.key.value * 1;
+                                                                if (!arrayIndex) arrayIndex = 0;//1;
                                                                 if (repeats > 0) {
                                                                     //arrayIndex += slotN + (_rep + 2);
                                                                     //slotN = slotN + (_rep + 2) / 10;
-                                                                    slotN = slotN + "-" + (_rep + 2);
+                                                                    
+                                                                    // slotN = slotN + "-" + (_rep + 2);
                                                                 }
                                                                 flightsReturn[side][fName]["units"][arrayIndex] = {}
                                                                 flightsReturn[side][fName]["units"][arrayIndex].slotN = slotN;
+                                                                flightsReturn[side][fName]["units"][arrayIndex].multicrewN = _rep + 2;
+                                                                flightsReturn[side][fName]["units"][arrayIndex].orderIndx = parseFloat(slotN + "." + flightsReturn[side][fName]["units"][arrayIndex].multicrewN);
                                                                 flightsReturn[side][fName]["units"][arrayIndex].multicrew = repeats > 0;
+                                                                flightsReturn[side][fName]["units"].sort((a,b)=> a.orderIndx - b.orderIndx)
+
+
                                                                 for (let aInfo of aircraft.value.fields) {
                                                                     let aSubInfoKey = aInfo.key.raw.replace(/\"/g, '');
                                                                     let aSubInfoValue;
