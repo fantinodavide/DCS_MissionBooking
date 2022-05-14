@@ -1,4 +1,4 @@
-const versionN = "1.63";
+const versionN = "1.64";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -407,9 +407,9 @@ function start() {
             mongoConn((dbo) => {
                 //log(req.query);
 
-                let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units." + parm.inflightNumber;
-                let update = findStr + ".player";
-                let updateUserId = findStr + ".user_id";
+                let findStr = "parsedMiz." + parm.sideColor + "." + parm.flight + ".units";
+                let update = findStr + "." + parm.inflightNumber + ".player";
+                let updateUserId = findStr + "." + parm.inflightNumber + ".user_id";
                 //log(update);
 
                 let playerName = "";
@@ -419,11 +419,13 @@ function start() {
                     if (err) serverError(err);
                     else {
                         let slot = dbRes.parsedMiz[parm.sideColor][parm.flight].units[parm.inflightNumber];
+                        console.log("####### SLOT #######\n", slot, findStr)
                         let dateNow = new Date();
                         const canBook = slot.player
                             && slot.player != ""
-                            && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
-                            && ((slot.user_id && slot.user_id == userId) || (isAdmin(req) && parm.customContext.action == "force_dismission"))
+                            && (true || new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
+                            && (slot.user_id && slot.user_id == userId)
+                            || (isAdmin(req) && parm.customContext && parm.customContext.action == "force_dismission")
                         if (canBook) {
                             dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [update]: playerName, [updateUserId]: -1 } }, (err, dbRes) => {
                                 if (err) serverError(err);
@@ -844,7 +846,7 @@ function getMissionFlightsFromString(missionFile) {
                                                     if (o5Key == "task") {
                                                         flightsReturn[side][fName].task = valRaw;
                                                     } if (o5Key == "units") {
-                                                        if (!flightsReturn[side][fName]["units"]) flightsReturn[side][fName]["units"] = [];
+                                                        if (!flightsReturn[side][fName]["units"]) flightsReturn[side][fName]["units"] = {};
                                                         for (let aircraft of o5.value.fields) {
                                                             let repeats = 0;
                                                             for (let _rep = -1; _rep < repeats; _rep++) {
@@ -854,15 +856,15 @@ function getMissionFlightsFromString(missionFile) {
                                                                 if (repeats > 0) {
                                                                     //arrayIndex += slotN + (_rep + 2);
                                                                     //slotN = slotN + (_rep + 2) / 10;
-                                                                    
+
                                                                     // slotN = slotN + "-" + (_rep + 2);
                                                                 }
-                                                                flightsReturn[side][fName]["units"][arrayIndex] = {}
+                                                                flightsReturn[side][fName]["units"][arrayIndex] = []
                                                                 flightsReturn[side][fName]["units"][arrayIndex].slotN = slotN;
                                                                 flightsReturn[side][fName]["units"][arrayIndex].multicrewN = _rep + 2;
                                                                 flightsReturn[side][fName]["units"][arrayIndex].orderIndx = parseFloat(slotN + "." + flightsReturn[side][fName]["units"][arrayIndex].multicrewN);
                                                                 flightsReturn[side][fName]["units"][arrayIndex].multicrew = repeats > 0;
-                                                                flightsReturn[side][fName]["units"].sort((a,b)=> a.orderIndx - b.orderIndx)
+                                                                flightsReturn[side][fName]["units"].sort((a, b) => a.orderIndx - b.orderIndx)
 
 
                                                                 for (let aInfo of aircraft.value.fields) {
@@ -930,10 +932,10 @@ function parseCallsign(callsignLua) {
     if (callsignLua) {
         let csparts = [];
 
-        csparts[1]=getLUAArrElm(callsignLua, 1)
-        csparts[2]=getLUAArrElm(callsignLua, 2)
-        csparts[3]=getLUAArrElm(callsignLua, 3)
-        csparts["name"]=getLUAArrElm(callsignLua, "name")
+        csparts[1] = getLUAArrElm(callsignLua, 1)
+        csparts[2] = getLUAArrElm(callsignLua, 2)
+        csparts[3] = getLUAArrElm(callsignLua, 3)
+        csparts["name"] = getLUAArrElm(callsignLua, "name")
         //console.log(csparts)
 
         if (csparts[2]) ret.group = csparts[2].value.value ? csparts[2].value.value : 1;
@@ -943,7 +945,7 @@ function parseCallsign(callsignLua) {
     return ret;
 }
 function getLUAArrElm(luaArr, indx) {
-    for(let value of luaArr){
+    for (let value of luaArr) {
         if (LUARealString(value.key.raw) == indx || value.key.value == indx) return value
     }
     return null;
