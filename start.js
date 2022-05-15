@@ -22,6 +22,7 @@ const nocache = require('nocache');
 const axios = require('axios');
 const log4js = require('log4js');
 const WebSocket = require('ws');
+const fileupload = require('express-fileupload');
 
 const enableServer = true;
 var errorCount = 0;
@@ -96,6 +97,7 @@ function start() {
 
         app.use(nocache());
         app.set('etag', false)
+        app.use(fileupload());
         app.use("/", bodyParser.json());
         app.use("/", bodyParser.urlencoded({ extended: true }));
         app.use(cookieParser());
@@ -114,11 +116,17 @@ function start() {
         app.use('*', authorizeDCSUsers)
 
         app.use('/admin*', authorizeAdmin)
+        app.use('/airports*', authorizeAdmin)
         app.use('/publishment*', authorizeAdmin)
 
         app.use('/publishment', function (req, res, next) {
             express.static('admin')(req, res, next);
         });
+
+        app.use('/airports', function (req, res, next) {
+            express.static('airports')(req, res, next);
+        });
+
         app.use('/api/admin*', authorizeAdmin)
 
         app.get("/api/admin", (req, res, next) => {
@@ -246,6 +254,28 @@ function start() {
                     res.send(dbRes)
                 });
             })
+        })
+        app.get('/api/admin/getAllAirports', function (req, res, next) {
+            res.send({})
+        })
+        app.post('/api/admin/loadAirportsLua', async function (req, res, next) {
+            const file = req.files.airports;
+            const orTable = file.data.toString();
+            let arArray = [];
+
+            for (let line of orTable.split('\n')) {
+                let lineSplit = line.split('][');
+                if (lineSplit[1]) {
+                    let typeValSplit = lineSplit[1].replace(/\"|\'|\s|]/g, '').split('=');
+                    const arIndx = parseInt(lineSplit[0].replace(/name|\[/g, ''));
+                    if (!arArray[arIndx]) arArray[arIndx] = {};
+                    arArray[arIndx][typeValSplit[0]] = typeValSplit[1];
+                }
+
+            }
+            arArray.sort()
+            arArray = arArray.filter(v=>v!==null)
+            res.send(arArray)
         })
         app.post('/api/login', (req, res, next) => {
             const parm = req.body;
@@ -476,6 +506,12 @@ function start() {
                         name: "Publishment",
                         url: "/publishment",
                         order: 1,
+                        type: "redirect"
+                    },
+                    {
+                        name: "Airports",
+                        url: "/airports",
+                        order: 5,
                         type: "redirect"
                     },
                     {
