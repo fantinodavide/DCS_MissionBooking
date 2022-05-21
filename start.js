@@ -1,4 +1,4 @@
-const versionN = "1.64";
+const versionN = "1.65";
 
 const fs = require("fs");
 const StreamZip = require('node-stream-zip');
@@ -865,8 +865,6 @@ function getMissionFlightsFromString(missionFile) {
                             for (let o4 of c.value.fields) {
                                 if (["plane", "helicopter"].includes(LUAGetKey(o4))) {
                                     for (let fGroups of o4.value.fields[0].value.fields) {
-                                        //log(fGroups);
-                                        //flights[side].push();
                                         let fInfo = {};
                                         let fName = "";
                                         for (let i = 0; i < 2; i++) {
@@ -882,7 +880,7 @@ function getMissionFlightsFromString(missionFile) {
                                                     if (o5Key == "task") {
                                                         flightsReturn[side][fName].task = valRaw;
                                                     } if (o5Key == "units") {
-                                                        if (!flightsReturn[side][fName]["units"]) flightsReturn[side][fName]["units"] = {};
+                                                        if (!flightsReturn[side][fName]["units"]) flightsReturn[side][fName]["units"] = [];
                                                         for (let aircraft of o5.value.fields) {
                                                             let repeats = 0;
                                                             for (let _rep = -1; _rep < repeats; _rep++) {
@@ -895,7 +893,7 @@ function getMissionFlightsFromString(missionFile) {
 
                                                                     // slotN = slotN + "-" + (_rep + 2);
                                                                 }
-                                                                flightsReturn[side][fName]["units"][arrayIndex] = []
+                                                                flightsReturn[side][fName]["units"][arrayIndex] = {}
                                                                 flightsReturn[side][fName]["units"][arrayIndex].slotN = slotN;
                                                                 flightsReturn[side][fName]["units"][arrayIndex].multicrewN = _rep + 2;
                                                                 flightsReturn[side][fName]["units"][arrayIndex].orderIndx = parseFloat(slotN + "." + flightsReturn[side][fName]["units"][arrayIndex].multicrewN);
