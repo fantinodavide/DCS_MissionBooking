@@ -1,4 +1,4 @@
-const versionN = "1.65";
+const versionN = "1.66";
 
 const cp = require('child_process');
 var installingDependencies = false;
