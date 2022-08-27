@@ -54,7 +54,7 @@ function login() {
 
 let myBookedMissions = [];
 function createTable(orParsedMiz, missionId, sideFilter) {
-    let table = $("<table><tr><th>Flight</th><th>Task</th><th>Slots</th></tr></table>");
+    let table = $("<table><tr><th>Flight</th><th>Task</th><th>Airport</th><th>Slots</th></tr></table>");
     //$(".mainContainer")
     const parsedMiz = orParsedMiz;
     // parsedMiz["blue"] = orParsedMiz.blue.sort((a, b) => { return a.slotN - b.slotN; })
@@ -77,7 +77,7 @@ function createTable(orParsedMiz, missionId, sideFilter) {
                     table.append(row);
                     Object.entries(v).forEach(entry => {
                         const [k, v] = entry;
-                        if (["task"].includes(k)) {
+                        if (["task","airport_name"].includes(k)) {
                             if (!isObject(v)) {
                                 let td = $("<td class='colId " + k + " " + v + "' rowspan=\"" + unitsCount + "\">" + v + "</td>");
                                 row.append(td);

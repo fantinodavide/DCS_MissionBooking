@@ -158,7 +158,7 @@ th:last-of-type {
     align-items: stretch;
     margin: 0 10px;
     flex-direction: column;
-    overflow: hidden;
+    overflow-x: auto;
 }
 
 .playerContainer {
@@ -378,6 +378,10 @@ td {
 }
 
 .colId.task {
+    width: 1%;
+    min-width: 50px;
+}
+.colId.airport_name {
     width: 1%;
     min-width: 50px;
 }

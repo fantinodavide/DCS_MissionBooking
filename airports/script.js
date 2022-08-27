@@ -33,6 +33,7 @@ $(document).ready(() => {
                 success: function (data) {
                     // your callback here
                     console.log(data)
+                    close();
                 },
                 error: function (error) {
                     // handle error
