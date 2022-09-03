@@ -121,7 +121,7 @@ async function init() {
 
             app.use(nocache());
             app.set('etag', false)
-            app.use(fileupload());
+            app.use("/admin*",fileupload());
             app.use("/", bodyParser.json());
             app.use("/", bodyParser.urlencoded({ extended: true }));
             app.use(cookieParser());
@@ -303,7 +303,7 @@ async function init() {
                     let lineSplit = line.split('][');
                     if (lineSplit[ 1 ]) {
                         let typeValSplit = lineSplit[ 1 ].replace(/\"|\'|\s|]/g, '').split('=');
-                        const arIndx = parseInt(lineSplit[ 0 ].replace(/name|\[/g, ''));
+                        const arIndx = parseInt(lineSplit[ 0 ].replace(/tbl_basi_sig|name|\[/g, ''));
                         if (!arArray[ arIndx ]) arArray[ arIndx ] = {};
                         if (typeValSplit[ 0 ] == 'id') typeValSplit[ 0 ] = "airport_id";
                         arArray[ arIndx ][ "teatro" ] = "Syria";
