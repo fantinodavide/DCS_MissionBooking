@@ -1,4 +1,4 @@
-const versionN = "1.67";
+const versionN = "1.68";
 
 const cp = require('child_process');
 var installingDependencies = false;
@@ -121,7 +121,7 @@ async function init() {
 
             app.use(nocache());
             app.set('etag', false)
-            app.use("/admin*",fileupload());
+            app.use("/api/admin*",fileupload());
             app.use("/", bodyParser.json());
             app.use("/", bodyParser.urlencoded({ extended: true }));
             app.use(cookieParser());
@@ -295,6 +295,7 @@ async function init() {
                 res.send({})
             })
             app.post('/api/admin/loadAirportsLua', async function (req, res, next) {
+                console.log(req.files);
                 const file = req.files.airports;
                 const orTable = file.data.toString();
                 let arArray = [];
