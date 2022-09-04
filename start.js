@@ -1,4 +1,4 @@
-const versionN = "1.68";
+const versionN = "1.69";
 
 const cp = require('child_process');
 var installingDependencies = false;
@@ -307,10 +307,11 @@ async function init() {
                         const arIndx = parseInt(lineSplit[ 0 ].replace(/tbl_basi_sig|name|\[/g, ''));
                         if (!arArray[ arIndx ]) arArray[ arIndx ] = {};
                         if (typeValSplit[ 0 ] == 'id') typeValSplit[ 0 ] = "airport_id";
-                        arArray[ arIndx ][ "teatro" ] = "Syria";
                         arArray[ arIndx ][ typeValSplit[ 0 ] ] = typeValSplit[ 0 ] == 'airport_id' ? parseInt(typeValSplit[ 1 ]) : typeValSplit[ 1 ];
                     }
                 }
+                for(let ak in arArray) if(!arArray[ak].teatro) arArray[ak].teatro = "Syria";
+
                 arArray.sort((a, b) => a.airport_id - b.airport_id)
                 console.log(arArray);
                 arArray = arArray.filter(v => v !== null)
