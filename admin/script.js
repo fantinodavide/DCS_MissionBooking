@@ -31,6 +31,11 @@ $(document).ready(() => {
                         type: "text"
                     },
                     {
+                        title: "Briefing URL",
+                        name: "briefing_url",
+                        type: "url"
+                    },
+                    {
                         title: "Mission Date and Time",
                         name: "Mission Date and Time",
                         type: "datetime-local"

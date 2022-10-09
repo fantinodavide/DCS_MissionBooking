@@ -15,7 +15,7 @@ $(document).ready(() => {
                 //console.log(jsonData.parsedMiz.blue);
                 $("#tableContainer").find("table").remove();
 
-                createTable(jsonData.parsedMiz, jsonData._id, "blue/red")
+                createTable(jsonData, jsonData._id, "blue/red")
                 //createTable(jsonData.parsedMiz.red, "red")
                 rightMouseButtonEvt();
             });
@@ -53,10 +53,11 @@ function login() {
 }
 
 let myBookedMissions = [];
-function createTable(orParsedMiz, missionId, sideFilter) {
+function createTable(orMizData, missionId, sideFilter) {
+    let briefingBanner = $(`<div class="banner"><img src="/icons/warning.svg" /><a href="${orMizData.missionInputData.briefing_url}" target="blank">Clicca qui per visualizzare il Briefing missione</a></div>`)
     let table = $("<table><tr><th>Flight</th><th>Task</th><th>Airport</th><th>Slots</th></tr></table>");
     //$(".mainContainer")
-    const parsedMiz = orParsedMiz;
+    const parsedMiz = orMizData.parsedMiz;
     // parsedMiz["blue"] = orParsedMiz.blue.sort((a, b) => { return a.slotN - b.slotN; })
     // parsedMiz["red"] = orParsedMiz.red.sort((a, b) => { return a.slotN - b.slotN; })
     // parsedMiz["neutrals"] = orParsedMiz.neutrals.sort((a, b) => { return a.slotN - b.slotN; })
@@ -177,6 +178,8 @@ function createTable(orParsedMiz, missionId, sideFilter) {
             })
         }
     })
+
+    if(orMizData.missionInputData.briefing_url && orMizData.missionInputData.briefing_url != "") $("#tableContainer").append(briefingBanner)
     $("#tableContainer").append(table);
 }
 

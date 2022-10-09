@@ -1,4 +1,4 @@
-const versionN = "1.69";
+const versionN = "1.70";
 
 const cp = require('child_process');
 var installingDependencies = false;
@@ -121,7 +121,7 @@ async function init() {
 
             app.use(nocache());
             app.set('etag', false)
-            app.use("/api/admin*",fileupload());
+            app.use("/api/admin*", fileupload());
             app.use("/", bodyParser.json());
             app.use("/", bodyParser.urlencoded({ extended: true }));
             app.use(cookieParser());
@@ -184,13 +184,13 @@ async function init() {
                         let insData = new Object(req.body);
                         insData.missionInputData.MissionDateandTime = new Date(insData.missionInputData.MissionDateandTime);
                         for (let k_coal in parsedMiz) {
-                            let coal = parsedMiz[k_coal];
+                            let coal = parsedMiz[ k_coal ];
                             if (typeof coal == 'object') {
                                 for (let k_fl in coal) {
-                                    let fl = coal[k_fl]
+                                    let fl = coal[ k_fl ]
                                     fl.airport_name = "";
-                                    if(fl.airport_id){
-                                        fl.airport_name = (await dbo.collection("airports").findOne({teatro: parsedMiz.theatre, airport_id: fl.airport_id})).nome
+                                    if (fl.airport_id) {
+                                        fl.airport_name = (await dbo.collection("airports").findOne({ teatro: parsedMiz.theatre, airport_id: fl.airport_id })).nome
                                     }
                                 }
                             }
@@ -202,7 +202,7 @@ async function init() {
                             if (err) serverError(err);
                             else {
                                 res.send(insData);
-                                console.log("PUblished mission ", insData);
+                                console.log("Published mission ", insData);
                             }
                         })
                     });
@@ -286,8 +286,10 @@ async function init() {
                         /*con.query(query, function (err, dbRes2) {
                             if (err) serverError(err);
                         });*/
-                        for (let g of dbRes) if (config.forum.authorized_groups.includes(g.group_name)) g.selected = true;
-                        res.send(dbRes)
+                        if (dbRes && dbRes.length > 0) {
+                            for (let g of dbRes) if (config.forum.authorized_groups.includes(g.group_name)) g.selected = true;
+                            res.send(dbRes)
+                        } else res.send([])
                     });
                 })
             })
@@ -295,7 +297,6 @@ async function init() {
                 res.send({})
             })
             app.post('/api/admin/loadAirportsLua', async function (req, res, next) {
-                console.log(req.files);
                 const file = req.files.airports;
                 const orTable = file.data.toString();
                 let arArray = [];
@@ -310,7 +311,7 @@ async function init() {
                         arArray[ arIndx ][ typeValSplit[ 0 ] ] = typeValSplit[ 0 ] == 'airport_id' ? parseInt(typeValSplit[ 1 ]) : typeValSplit[ 1 ];
                     }
                 }
-                for(let ak in arArray) if(!arArray[ak].teatro) arArray[ak].teatro = "Syria";
+                for (let ak in arArray) if (!arArray[ ak ].teatro) arArray[ ak ].teatro = "Syria";
 
                 arArray.sort((a, b) => a.airport_id - b.airport_id)
                 console.log(arArray);
@@ -417,7 +418,7 @@ async function init() {
                 const parm = req.query;
                 if (parm.missionId) {
                     mongoConn((dbo) => {
-                        dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { parsedMiz: 1 } }, (err, dbRes) => {
+                        dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { parsedMiz: 1, missionInputData: 1 } }, (err, dbRes) => {
                             if (err) serverError(err);
                             else {
                                 res.send(dbRes);
@@ -865,8 +866,8 @@ async function init() {
         return d;
     }
 
-    function serverError(err) {
-        res.sendStatus(500);
+    function serverError(err, res = null) {
+        if (res) res.sendStatus(500);
         console.error(err);
     }
 

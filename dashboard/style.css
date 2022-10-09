@@ -381,6 +381,7 @@ td {
     width: 1%;
     min-width: 50px;
 }
+
 .colId.airport_name {
     width: 1%;
     min-width: 50px;
@@ -710,4 +711,30 @@ select:-webkit-autofill:focus {
 
 .missionDataContainer *:last-child {
     margin-right: 0 !important;
+}
+
+.banner {
+    margin-bottom: 10px;
+    /* padding: 15px 20px; */
+    background-color: #333;
+    border-radius: 10px;
+    padding: 5px 10px;
+    min-height: 35px;
+    display: flex;
+    align-items: center;
+}
+
+.banner img {
+    height: 35px;
+    margin-right: 10px;
+}
+
+a {
+    font-style: italic;
+    text-decoration: none;
+    color: #ccc !important
+}
+a:hover {
+    text-decoration: underline;
+    color: #fff !important
 }
