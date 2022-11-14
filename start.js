@@ -130,9 +130,14 @@ async function init() {
 
             app.use('/', express.static('dashboard'));
             app.use("/m/:mission_id", function (req, res, next) {
-                let mizId = req.params.mission_id;
-                let header;
                 express.static('dashboard')(req, res, next);
+                // if (!req.params.poster || req.params.poster == "") 
+                // else express.static('poster')(req, res, next)
+            })
+            app.use("/p/:mission_id", function (req, res, next) {
+                express.static('poster')(req, res, next);
+                // if (!req.params.poster || req.params.poster == "") 
+                // else express.static('poster')(req, res, next)
             })
 
             app.use('*', getSession);
@@ -396,8 +401,8 @@ async function init() {
             })
             app.get('/api/getAllMissions/:sel?/:mission_id?', function (req, res, next) {
                 const missionId = req.params.mission_id;
-                let find = req.params.sel == "m" ? { _id: ObjectID(missionId) } : {};
-                let specificMission = req.params.sel == "m" && req.params.mission_id;
+                let find = ["m","p"].includes(req.params.sel) ? { _id: ObjectID(missionId) } : {};
+                let specificMission = ["m","p"].includes(req.params.sel) && req.params.mission_id;
                 const recordsLimit = req.params.recordsLimit ? req.params.recordsLimit : 10;
                 const parm = req.query;
                 const dateNow = new Date();
@@ -1094,7 +1099,7 @@ async function init() {
                 break;
             }
         }
-        for(let k of Object.keys(flightsReturn.helipads_data)) flightsReturn.helipads_data[k] = flightsReturn.helipads_data[k].filter((e)=>e!=null && e.name && e.unit_id)
+        for (let k of Object.keys(flightsReturn.helipads_data)) flightsReturn.helipads_data[ k ] = flightsReturn.helipads_data[ k ].filter((e) => e != null && e.name && e.unit_id)
         return flightsReturn
     }
     function LUAGetKey(key) {
