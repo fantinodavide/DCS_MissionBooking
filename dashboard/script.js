@@ -30,7 +30,7 @@ $(document).ready(() => {
 })
 
 function login() {
-    inputPopup("Login", [["Username", "Password"], ["text", "password"]], (json, getPointerCampo, popupClose) => {
+    inputPopup("Login", [ [ "Username", "Password" ], [ "text", "password" ] ], (json, getPointerCampo, popupClose) => {
         send_request("/api/login", "POST", JSON.parse(json), (data) => {
             const jsonData = JSON.parse(data);
             console.log(jsonData);
@@ -55,7 +55,7 @@ function login() {
 let myBookedMissions = [];
 function createTable(orMizData, missionId, sideFilter) {
     let briefingBanner = $(`<div class="banner"><img src="/icons/warning.svg" /><a href="${orMizData.missionInputData.briefing_url}" target="blank">Clicca qui per visualizzare il Briefing missione</a></div>`)
-    let table = $("<table><tr><th>Flight</th><th>Task</th><th>Airport</th><th>Slots</th></tr></table>");
+    let table = $("<table><tr><th>Flight</th><th>Task</th><th>Base</th><th>Slots</th></tr></table>");
     //$(".mainContainer")
     const parsedMiz = orMizData.parsedMiz;
     // parsedMiz["blue"] = orParsedMiz.blue.sort((a, b) => { return a.slotN - b.slotN; })
@@ -63,13 +63,13 @@ function createTable(orMizData, missionId, sideFilter) {
     // parsedMiz["neutrals"] = orParsedMiz.neutrals.sort((a, b) => { return a.slotN - b.slotN; })
 
     Object.entries(parsedMiz).forEach(entry => {
-        const [k, v] = entry;
+        const [ k, v ] = entry;
         let sideColor = k;
         if (sideFilter.includes(k)) {
             Object.entries(v).forEach(entry => {
-                const [k, v] = entry;
+                const [ k, v ] = entry;
                 const showAI = false;
-                if ((v.skill == "Client" || v.units[Object.keys(v.units)[0]].skill == "Client") || showAI) {
+                if ((v.skill == "Client" || v.units[ Object.keys(v.units)[ 0 ] ].skill == "Client") || showAI) {
                     table.append("<tr class='rowSpacer'></tr>");
                     const unitsCount = count(v.units);
                     let flightName = k;
@@ -77,10 +77,17 @@ function createTable(orMizData, missionId, sideFilter) {
                     let row = $("<tr><td class='flightTD' rowspan=\"" + unitsCount + "\"><div class='flightContainer'><span class='aircraftType'>" + v.simpleAircraftType + "</span><span class='groupName'>" + (v.callsign && v.callsign.name ? (v.callsign.name) + "-" + v.callsign.group : k) + "</span></div></td></tr>");
                     table.append(row);
                     Object.entries(v).forEach(entry => {
-                        const [k, v] = entry;
-                        if (["task","airport_name"].includes(k)) {
-                            if (!isObject(v)) {
-                                let td = $("<td class='colId " + k + " " + v + "' rowspan=\"" + unitsCount + "\">" + v + "</td>");
+                        const [ k, v2 ] = entry;
+                        if ([ "task", "airport_name" ].includes(k)) {
+                            if (!isObject(v2)) {
+                                let appendVal = v2;
+                                if (k == "airport_name") {
+                                    if (v2 == "" && v.helipad_id) {
+                                        appendVal = parsedMiz.helipads_data[ sideColor ].find((e) => e && e.unit_id && e.unit_id == v.helipad_id)
+                                        appendVal = (appendVal.name ? appendVal.name : "").replace(/\_/g, '-');
+                                    } else if (!v.helipad_id && !v.airport_id) appendVal = "Air"
+                                }
+                                let td = $("<td class='colId " + k + " " + v2 + "' rowspan=\"" + unitsCount + "\">" + appendVal + "</td>");
                                 row.append(td);
                             }
                         }
@@ -91,31 +98,31 @@ function createTable(orMizData, missionId, sideFilter) {
                     console.log(sUnits);
                     */
                     Object.entries(v.units).forEach(entry => {
-                        const [k, v] = entry;
+                        const [ k, v ] = entry;
 
                         let playerBooked = v.player && v.player != "";
                         let aircraftN = v.slotN ? v.slotN : k;
                         if (aircraftN > 10) aircraftN = (aircraftN / 10);
-                        let multicrewStr = (v.multicrewN>1?"-"+v.multicrewN:"");
+                        let multicrewStr = (v.multicrewN > 1 ? "-" + v.multicrewN : "");
                         let tdElm = $("<td class='playerContainer " + sideColor + " " + (playerBooked ? "booked" : "") + " " + (v.priority ? "priority" : "") + "'><div class='horizontalScrolling'><span class='inFlightNumber'>" + aircraftN + multicrewStr + "</span><span class='playerNameContainer'>" + (playerBooked ? v.player : "") + "</span></div></td>");
                         if (v.multicrew) tdElm.addClass("multicrew");
                         if (v.reserved) tdElm.addClass("reserved");
                         if (unitsCount == 1) tdElm.addClass("singleSlot");
-                        tdElm[0].playerBooked = playerBooked;
+                        tdElm[ 0 ].playerBooked = playerBooked;
                         let par = { missionId: missionId, sideColor: sideColor, flight: flightName, spec: v, inflightNumber: k };
-                        tdElm[0].flightRef = par;
+                        tdElm[ 0 ].flightRef = par;
 
                         if (!v.user_id || v.user_id == -1 || v.user_id == parseInt(getCookie("uid"))) {
                             tdElm.css("cursor", "pointer")
                             tdElm.click(() => {
-                                if (!tdElm[0].playerBooked) {
-                                    _bookMission(tdElm[0]);
+                                if (!tdElm[ 0 ].playerBooked) {
+                                    _bookMission(tdElm[ 0 ]);
                                 } else {
-                                    _dismissMission(tdElm[0]);
+                                    _dismissMission(tdElm[ 0 ]);
                                 }
                             })
                             if (v.user_id == parseInt(getCookie("uid"))) {
-                                myBookedMissions.push(tdElm[0]);
+                                myBookedMissions.push(tdElm[ 0 ]);
 
                             }
                         }
@@ -126,7 +133,7 @@ function createTable(orMizData, missionId, sideFilter) {
                             tdElm.click(() => {*/
                             getAppPersonalization((data) => {
                                 if (data.dashboard.preBookingConfirmation) {
-                                    inputPopup(data.dashboard.preBookingConfText, [[], []], (json, getPointerCampo, close) => {
+                                    inputPopup(data.dashboard.preBookingConfText, [ [], [] ], (json, getPointerCampo, close) => {
                                         console.log(json);
                                         procBook();
                                     })
@@ -145,7 +152,7 @@ function createTable(orMizData, missionId, sideFilter) {
                                 console.log("Booking mission", par);
                                 send_request("/api/bookMission", "GET", par, (data) => {
                                     const jsonData = JSON.parse(data);
-                                    grBook(tdElm[0], jsonData.playerName)
+                                    grBook(tdElm[ 0 ], jsonData.playerName)
                                     //myBookedMissions.push(tdElm)
                                 })
                             }
@@ -154,7 +161,7 @@ function createTable(orMizData, missionId, sideFilter) {
                             let par = mizElm.flightRef;
                             /*console.log("[EVT SET] Dismiss mission");
                             tdElm.click(() => {*/
-                            if (myBookedMissions.indexOf(tdElm[0]) >= 0) myBookedMissions[myBookedMissions.indexOf(tdElm[0])] = null;
+                            if (myBookedMissions.indexOf(tdElm[ 0 ]) >= 0) myBookedMissions[ myBookedMissions.indexOf(tdElm[ 0 ]) ] = null;
                             console.log("Dissmissing mission");
                             send_request("/api/dismissMission", "GET", par, (data) => {
                                 const jsonData = JSON.parse(data);
@@ -179,7 +186,7 @@ function createTable(orMizData, missionId, sideFilter) {
         }
     })
 
-    if(orMizData.missionInputData.briefing_url && orMizData.missionInputData.briefing_url != "") $("#tableContainer").append(briefingBanner)
+    if (orMizData.missionInputData.briefing_url && orMizData.missionInputData.briefing_url != "") $("#tableContainer").append(briefingBanner)
     $("#tableContainer").append(table);
 }
 
@@ -190,7 +197,7 @@ function recursiveCellCreator(k, v) {
     } else {
         console.log(k, v);
         Object.entries(v).forEach(entry => {
-            const [k, v] = entry;
+            const [ k, v ] = entry;
             let td = $("<td>" + v + "</td>");
             row.append(td);
         });
@@ -220,7 +227,7 @@ function rightMouseButtonEvt() {
         return false;
     });
     $("body").bind("click", function (e) {
-        if (!contextMenu.find(e.target)[0]) {
+        if (!contextMenu.find(e.target)[ 0 ]) {
             contextMenu.close();
         }
     });
@@ -234,7 +241,7 @@ function rightMouseButtonEvt() {
 
     $(".playerContainer").bind("contextmenu", openContextMenu);
     function openContextMenu(e) {
-        contextMenu[0].senderElm = e.currentTarget;
+        contextMenu[ 0 ].senderElm = e.currentTarget;
         const left = Math.min(e.pageX, ($(window).width() - contextMenu.width() - 10))
         const top = Math.min(e.pageY, ($(document).height() - contextMenu.height() - 20));
         console.log(e);
@@ -256,7 +263,7 @@ function createContextMenu() {
         const jsonData = JSON.parse(data);
         for (let b of jsonData) {
             let btn = $("<button>" + b.name + "</button>");
-            btn[0].customContext = b;
+            btn[ 0 ].customContext = b;
 
             btn.click((e) => {
                 const sender = e.target.parentNode.senderElm;
@@ -350,14 +357,14 @@ function isEqualsJson(obj1, obj2) {
     console.log(obj1, obj2);
 
     //return true when the two json has same length and all the properties has same value key by key
-    return keys1.length == keys2.length && Object.keys(obj1).every(key => obj1[key] == obj2[key]);
+    return keys1.length == keys2.length && Object.keys(obj1).every(key => obj1[ key ] == obj2[ key ]);
 }
 function getCookie(cname) {
     let name = cname + "=";
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
     for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
+        let c = ca[ i ];
         while (c.charAt(0) == ' ') {
             c = c.substring(1);
         }

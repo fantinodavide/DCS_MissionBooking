@@ -666,6 +666,7 @@ async function init() {
                             else if (dbRes != null) {
                                 //log(dbRes);
                                 req.userSession = dbRes
+                                res.cookie("uid", dbRes.user_id, { expires: dbRes.session_expiration })
                                 if (callback)
                                     callback();
                             } else {
@@ -1093,7 +1094,7 @@ async function init() {
                 break;
             }
         }
-        flightsReturn.helipads_data = flightsReturn.helipads_data.filter((e)=>e!=null && e.name && e.unit_id)
+        for(let k of Object.keys(flightsReturn.helipads_data)) flightsReturn.helipads_data[k] = flightsReturn.helipads_data[k].filter((e)=>e!=null && e.name && e.unit_id)
         return flightsReturn
     }
     function LUAGetKey(key) {
