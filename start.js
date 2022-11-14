@@ -190,7 +190,8 @@ async function init() {
                                     let fl = coal[ k_fl ]
                                     fl.airport_name = "";
                                     if (fl.airport_id) {
-                                        fl.airport_name = (await dbo.collection("airports").findOne({ teatro: parsedMiz.theatre, airport_id: fl.airport_id })).nome
+                                        const airport_dt = (await dbo.collection("airports").findOne({ teatro: parsedMiz.theatre, airport_id: fl.airport_id }));
+                                        fl.airport_name = airport_dt ? airport_dt.nome : ""
                                     }
                                 }
                             }
@@ -452,7 +453,7 @@ async function init() {
                     let playerName = req.userSession.username;
                     let userId = req.userSession.user_id;
 
-                    dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { missionInputData: 1, [ findStr ]: 1 } }, (err, dbRes) => {
+                    dbo.collection("missions").findOne(ObjectID(parm.missionId), (err, dbRes) => {
                         if (err) serverError(err);
                         else {
                             let slot = dbRes.parsedMiz[ parm.sideColor ][ parm.flight ].units[ parm.inflightNumber ];
@@ -460,7 +461,7 @@ async function init() {
                             const canBook = (!slot.user_id || slot.user_id == -1)
                                 && !slot.reserved
                                 && (new Date(dbRes.missionInputData.MissionDateandTime) - dateNow > 0)
-                                && (dbRes.missionInputData[ "authGroups-" + parm.sideColor ].includes(req.userSession.group_name) || !(dbRes.missionInputData[ "authGroups-blue" ] && dbRes.missionInputData[ "authGroups-red" ]) || isAdmin(req))
+                                && (!dbRes.missionInputData[ "authGroups-" + parm.sideColor ] || dbRes.missionInputData[ "authGroups-" + parm.sideColor ].includes(req.userSession.group_name) || !(dbRes.missionInputData[ "authGroups-blue" ] && dbRes.missionInputData[ "authGroups-red" ]) || isAdmin(req))
                             if (canBook) {
                                 dbo.collection("missions").updateOne({ _id: ObjectID(parm.missionId) }, { $set: { [ update ]: playerName, [ updateUserId ]: userId } }, (err, dbRes) => {
                                     if (err) serverError(err);
@@ -493,7 +494,7 @@ async function init() {
                     let playerName = "";
                     let userId = req.userSession.user_id;
 
-                    dbo.collection("missions").findOne(ObjectID(parm.missionId), { projection: { missionInputData: 1, [ findStr ]: 1 } }, (err, dbRes) => {
+                    dbo.collection("missions").findOne(ObjectID(parm.missionId), (err, dbRes) => {
                         if (err) serverError(err);
                         else {
                             let slot = dbRes.parsedMiz[ parm.sideColor ][ parm.flight ].units[ parm.inflightNumber ];
@@ -909,13 +910,14 @@ async function init() {
     }
     function getMissionFlightsFromString(missionFile) {
         let flightsReturn = {};
+        flightsReturn.helipads_data = {}
         for (let o of missionFile.body[ 0 ].init[ 0 ].fields) {
             let key = LUAGetKey(o);
             if (key == "theatre") flightsReturn[ key ] = o.value.raw.replace(/\"/g, '');
             else if (key == "coalition") {
                 for (let o2 of o.value.fields) {
                     let side = LUAGetKey(o2);
-                    if (!flightsReturn[ side ]) flightsReturn[ side ] = {};
+                    if (!flightsReturn[ side ]) flightsReturn[ side ] = [];
 
                     for (let o3 of o2.value.fields) {
                         if (LUAGetKey(o3) == "country") {
@@ -925,89 +927,161 @@ async function init() {
                                         for (let fGroups of o4.value.fields[ 0 ].value.fields) {
                                             let fInfo = {};
                                             let fName = "";
-                                            for (let i = 0; i < 2; i++) {
-                                                for (let o5 of fGroups.value.fields) {
-                                                    let o5Key = LUAGetKey(o5);
+                                            // for (let i = 0; i < 2; i++) {
+                                            for (let o5 of fGroups.value.fields) {
+                                                let o5Key = LUAGetKey(o5);
 
-                                                    let valRaw = o5.value.raw ? o5.value.raw.replace(/\"/g, '') : "";
-                                                    if (o5Key == "name") {
-                                                        if (!flightsReturn[ side ][ valRaw ]) flightsReturn[ side ][ valRaw ] = {};
-                                                        fName = valRaw
+                                                let valRaw = o5.value.raw ? o5.value.raw.replace(/\"/g, '') : "";
+                                                if (o5Key == "name") {
+                                                    // if (!flightsReturn[ side ][ valRaw ]) flightsReturn[ side ][ valRaw ] = {};
+                                                    fInfo.group_name = valRaw
+                                                } else if (o5Key == "route") {
+                                                    // fInfo.route = o5;
+                                                    for (let o6 of o5.value.fields) {
+                                                        if (o6.key.raw.replace(/\"/g, '') == "points") {
+                                                            for (let o7 of o6.value.fields[ 0 ].value.fields) {
+                                                                switch (o7.key.raw.replace(/\"/g, '')) {
+                                                                    case 'helipadId':
+                                                                        fInfo.helipad_id = o7.value.value;
+                                                                        break;
+                                                                    case 'airdromeId':
+                                                                        fInfo.airport_id = o7.value.value;
+                                                                        break;
+                                                                }
+                                                            }
+                                                        }
                                                     }
-                                                    if (flightsReturn[ side ][ fName ]) {
-                                                        if (o5Key == "route") {
-                                                            // flightsReturn[ side ][ fName ].route = o5;
-                                                            for (let o6 of o5.value.fields) {
-                                                                if (o6.key.raw.replace(/\"/g, '') == "points") {
-                                                                    for (let o7 of o6.value.fields[ 0 ].value.fields) {
-                                                                        if (o7.key.raw.replace(/\"/g, '') == "airdromeId") {
-                                                                            flightsReturn[ side ][ fName ].airport_id = o7.value.value;
-                                                                        }
+                                                } else if (o5Key == "task") {
+                                                    fInfo.task = valRaw;
+                                                } else if (o5Key == "units") {
+                                                    if (!fInfo[ "units" ]) fInfo[ "units" ] = [];
+                                                    for (let aircraft of o5.value.fields) {
+                                                        let repeats = 0;
+                                                        for (let _rep = -1; _rep < repeats; _rep++) {
+                                                            let slotN = aircraft.key.value;
+                                                            let arrayIndex = length(fInfo[ "units" ]) + 0//1//flightsReturn[side][fName]["units"].length;//aircraft.key.value * 1;
+                                                            if (!arrayIndex) arrayIndex = 0;//1;
+                                                            if (repeats > 0) {
+                                                                //arrayIndex += slotN + (_rep + 2);
+                                                                //slotN = slotN + (_rep + 2) / 10;
+
+                                                                // slotN = slotN + "-" + (_rep + 2);
+                                                            }
+                                                            fInfo[ "units" ][ arrayIndex ] = {};
+                                                            fInfo[ "units" ][ arrayIndex ].slotN = slotN;
+                                                            fInfo[ "units" ][ arrayIndex ].multicrewN = _rep + 2;
+                                                            fInfo[ "units" ][ arrayIndex ].orderIndx = parseFloat(slotN + "." + fInfo[ "units" ][ arrayIndex ].multicrewN);
+                                                            fInfo[ "units" ][ arrayIndex ].multicrew = repeats > 0;
+                                                            fInfo[ "units" ].sort((a, b) => a.orderIndx - b.orderIndx)
+
+
+                                                            for (let aInfo of aircraft.value.fields) {
+                                                                let aSubInfoKey = aInfo.key.raw.replace(/\"/g, '');
+                                                                let aSubInfoValue;
+                                                                try {
+                                                                    aSubInfoValue = aInfo.value.raw.replace(/\"/g, '');
+                                                                } catch (error) {
+                                                                    aSubInfoValue = aInfo.value;
+                                                                }
+                                                                if (aSubInfoKey == "type") {
+                                                                    fInfo.aircraftType = aSubInfoValue;
+                                                                    if (repeats == 0) {
+                                                                        if (aSubInfoValue.includes("F-14")) repeats = 1;
+                                                                        else if (aSubInfoValue.includes("UH-1H")) repeats = 3;
+                                                                        else if (aSubInfoValue.includes("Mi-24")) repeats = 1;
+                                                                        else if (aSubInfoValue.includes("SA342")) repeats = 1;
+                                                                        else if (aSubInfoValue.includes("AH-64")) repeats = 1;
+                                                                        else if (aSubInfoValue.includes("Mosquito")) repeats = 1;
                                                                     }
+                                                                } else if (aSubInfoKey == "callsign") fInfo.callsign = parseCallsign(aSubInfoValue.fields);
+
+                                                                if ([ "type", "unitid", "name", "parking", "skill" ].includes(aSubInfoKey)) {
+                                                                    //log((arrayIndex + ") " + aSubInfoKey + ": "), aSubInfoValue)
+                                                                    if (aSubInfoKey == "callsign") {
+                                                                        //console.log("callsign", aSubInfoValue);
+                                                                        fInfo[ "units" ][ arrayIndex ][ aSubInfoKey ] = aSubInfoValue.name;
+                                                                    } else if (aSubInfoKey == "skill") {
+                                                                        fInfo.skill = aSubInfoValue;
+                                                                    } else
+                                                                        fInfo[ "units" ][ arrayIndex ][ aSubInfoKey ] = aSubInfoValue;
                                                                 }
                                                             }
-                                                        } if (o5Key == "task") {
-                                                            flightsReturn[ side ][ fName ].task = valRaw;
-                                                        } if (o5Key == "units") {
-                                                            if (!flightsReturn[ side ][ fName ][ "units" ]) flightsReturn[ side ][ fName ][ "units" ] = [];
-                                                            for (let aircraft of o5.value.fields) {
-                                                                let repeats = 0;
-                                                                for (let _rep = -1; _rep < repeats; _rep++) {
-                                                                    let slotN = aircraft.key.value;
-                                                                    let arrayIndex = length(flightsReturn[ side ][ fName ][ "units" ]) + 0//1//flightsReturn[side][fName]["units"].length;//aircraft.key.value * 1;
-                                                                    if (!arrayIndex) arrayIndex = 0;//1;
-                                                                    if (repeats > 0) {
-                                                                        //arrayIndex += slotN + (_rep + 2);
-                                                                        //slotN = slotN + (_rep + 2) / 10;
-
-                                                                        // slotN = slotN + "-" + (_rep + 2);
-                                                                    }
-                                                                    flightsReturn[ side ][ fName ][ "units" ][ arrayIndex ] = {};
-                                                                    flightsReturn[ side ][ fName ][ "units" ][ arrayIndex ].slotN = slotN;
-                                                                    flightsReturn[ side ][ fName ][ "units" ][ arrayIndex ].multicrewN = _rep + 2;
-                                                                    flightsReturn[ side ][ fName ][ "units" ][ arrayIndex ].orderIndx = parseFloat(slotN + "." + flightsReturn[ side ][ fName ][ "units" ][ arrayIndex ].multicrewN);
-                                                                    flightsReturn[ side ][ fName ][ "units" ][ arrayIndex ].multicrew = repeats > 0;
-                                                                    flightsReturn[ side ][ fName ][ "units" ].sort((a, b) => a.orderIndx - b.orderIndx)
-
-
-                                                                    for (let aInfo of aircraft.value.fields) {
-                                                                        let aSubInfoKey = aInfo.key.raw.replace(/\"/g, '');
-                                                                        let aSubInfoValue;
-                                                                        try {
-                                                                            aSubInfoValue = aInfo.value.raw.replace(/\"/g, '');
-                                                                        } catch (error) {
-                                                                            aSubInfoValue = aInfo.value;
-                                                                        }
-                                                                        if (aSubInfoKey == "type") {
-                                                                            flightsReturn[ side ][ fName ].aircraftType = aSubInfoValue;
-                                                                            if (repeats == 0) {
-                                                                                if (aSubInfoValue.includes("F-14")) repeats = 1;
-                                                                                else if (aSubInfoValue.includes("UH-1H")) repeats = 3;
-                                                                                else if (aSubInfoValue.includes("Mi-24")) repeats = 1;
-                                                                                else if (aSubInfoValue.includes("SA342")) repeats = 1;
-                                                                                else if (aSubInfoValue.includes("AH-64")) repeats = 1;
-                                                                                else if (aSubInfoValue.includes("Mosquito")) repeats = 1;
-                                                                            }
-                                                                        } else if (aSubInfoKey == "callsign") flightsReturn[ side ][ fName ].callsign = parseCallsign(aSubInfoValue.fields);
-
-                                                                        if ([ "type", "unitid", "name", "parking", "skill" ].includes(aSubInfoKey)) {
-                                                                            //log((arrayIndex + ") " + aSubInfoKey + ": "), aSubInfoValue)
-                                                                            if (aSubInfoKey == "callsign") {
-                                                                                //console.log("callsign", aSubInfoValue);
-                                                                                flightsReturn[ side ][ fName ][ "units" ][ arrayIndex ][ aSubInfoKey ] = aSubInfoValue.name;
-                                                                            } else if (aSubInfoKey == "skill") {
-                                                                                flightsReturn[ side ][ fName ].skill = aSubInfoValue;
-                                                                            } else
-                                                                                flightsReturn[ side ][ fName ][ "units" ][ arrayIndex ][ aSubInfoKey ] = aSubInfoValue;
-                                                                        }
+                                                        }
+                                                    }
+                                                    //flights[side][fName].units = valRaw;
+                                                }
+                                            }
+                                            // }
+                                            flightsReturn[ side ].push(fInfo)
+                                        }
+                                    } else if ("static" == LUAGetKey(o4)) {
+                                        if (!flightsReturn.helipads_data[ side ]) flightsReturn.helipads_data[ side ] = [];
+                                        for (let o5 of o4.value.fields) {
+                                            let o5Key = LUAGetKey(o5);
+                                            if (o5Key == "group")
+                                                for (let o6 of o5.value.fields) {
+                                                    let static_obj_id = LUAGetKey(o6);
+                                                    for (let o7 of o6.value.fields) {
+                                                        let o7Key = LUAGetKey(o7);
+                                                        if (o7Key == "units") {
+                                                            for (let o8 of o7.value.fields) {
+                                                                let unitDt = {};
+                                                                let unit_id = LUAGetKey(o8);
+                                                                // if (!flightsReturn.helipads_data[ side ][ static_obj_id ]) flightsReturn.helipads_data[ side ][ static_obj_id ] = {}
+                                                                // if (!flightsReturn.helipads_data[ side ][ static_obj_id ][ unit_id ]) flightsReturn.helipads_data[ side ][ static_obj_id ][ unit_id ] = {}
+                                                                for (let o9 of o8.value.fields) {
+                                                                    let o9Key = LUAGetKey(o9);
+                                                                    switch (o9Key) {
+                                                                        case 'name':
+                                                                            // flightsReturn.helipads_data[ side ][ static_obj_id ][ unit_id ].name = LUARealString(o9.value.raw)
+                                                                            unitDt.name = LUARealString(o9.value.raw)
+                                                                            break;
+                                                                        case 'unitId':
+                                                                            let unitId = LUARealString(o9.value.raw)
+                                                                            // flightsReturn.helipads_data[ side ][ static_obj_id ][ unit_id ].unit_id = +unitId
+                                                                            unitDt.unit_id = +unitId
+                                                                            break;
                                                                     }
                                                                 }
+                                                                flightsReturn.helipads_data[ side ].push(unitDt)
                                                             }
-                                                            //flights[side][fName].units = valRaw;
                                                         }
                                                     }
                                                 }
-                                            }
+                                        }
+                                    } else if ("ship" == LUAGetKey(o4)) {
+                                        if (!flightsReturn.helipads_data[ side ]) flightsReturn.helipads_data[ side ] = [];
+                                        for (let o5 of o4.value.fields) {
+                                            let o5Key = LUAGetKey(o5);
+                                            if (o5Key == "group")
+                                                for (let o6 of o5.value.fields) {
+                                                    let static_obj_id = LUAGetKey(o6);
+                                                    for (let o7 of o6.value.fields) {
+                                                        let o7Key = LUAGetKey(o7);
+                                                        if (o7Key == "units") {
+                                                            for (let o8 of o7.value.fields) {
+                                                                let unit_id = LUAGetKey(o8);
+                                                                let unitDt = {};
+                                                                if (!flightsReturn.helipads_data[ side ][ unit_id ]) flightsReturn.helipads_data[ side ][ unit_id ] = {}
+                                                                for (let o9 of o8.value.fields) {
+                                                                    let o9Key = LUAGetKey(o9);
+                                                                    switch (o9Key) {
+                                                                        case 'type':
+                                                                            let shipName = LUARealString(o9.value.raw)
+                                                                            if (shipName.toUpperCase().startsWith("CVN"))
+                                                                                unitDt.name = shipName
+                                                                            break;
+                                                                        case 'unitId':
+                                                                            let unitId = LUARealString(o9.value.raw)
+                                                                            unitDt.unit_id = +unitId
+                                                                            break;
+                                                                    }
+                                                                }
+                                                                flightsReturn.helipads_data[ side ].push(unitDt)
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                         }
                                     }
                                 }
@@ -1019,6 +1093,7 @@ async function init() {
                 break;
             }
         }
+        flightsReturn.helipads_data = flightsReturn.helipads_data.filter((e)=>e!=null && e.name && e.unit_id)
         return flightsReturn
     }
     function LUAGetKey(key) {
